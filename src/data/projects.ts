@@ -833,7 +833,7 @@ refused anyway, so no order can be placed through this project."""`,
   // ───────────────────────────────────────────── Adtran CLI
   {
     slug: 'legacy-refactoring-cli',
-    cover: 'img/photos/fiber.jpg',
+    cover: 'img/photos/adtran-campus.jpg',
     title: 'Legacy Code Modernization CLI',
     tagline: 'An automated refactoring tool that modernized 50,000+ lines of legacy code at Adtran and became the standard tool for other teams.',
     category: 'Developer Tools',
@@ -843,7 +843,6 @@ refused anyway, so no order can be placed through this project."""`,
     viz: 'cli',
     metrics: [
       { v: '50K+', l: 'lines modernized' },
-      { v: '150+', l: 'transform scripts' },
       { v: 'days → min', l: 'cleanup time' },
     ],
     intro: [
@@ -858,7 +857,7 @@ refused anyway, so no order can be placed through this project."""`,
           {
             t: 'steps',
             items: [
-              { title: 'Rule-driven transforms', body: 'Each modernization is a discrete, testable rule, so fixes are consistent and new rules can be added without touching the core. The tool grew to 150+ scripts.' },
+              { title: 'Rule-driven transforms', body: 'Each modernization is a discrete, testable rule, so fixes are consistent and new rules can be added without touching the core.' },
               { title: 'Safe by default', body: 'Dry-run and diff output show exactly what will change before anything is written, which fits the Gerrit review workflow.' },
               { title: 'Built for other teams', body: 'Packaged as a simple CLI with clear documentation, so engineers outside my team could adopt it without hand-holding. It is now the standard tool for this cleanup.' },
             ],
@@ -998,9 +997,10 @@ refused anyway, so no order can be placed through this project."""`,
     role: 'Designer & builder · began as my ECE 1100 project',
     status: 'In development',
     stack: ['C++', 'ESP32', 'Fusion 360', 'Lead screws', 'Differential', 'Scissor lift', 'Carbon fiber casting', 'Brushless motors', 'Wi-Fi control'],
-    cover: 'img/photos/battlebot-shell.jpg',
+    cover: 'img/photos/chonkiv-feb-2025.jpg',
     featured: true,
     metrics: [
+      { v: '27–8', l: 'precursor Chonkiv’s NHRL record' },
       { v: '4', l: 'legs, no wheels' },
       { v: '250+ mph', l: 'shell tip speed target' },
       { v: '2', l: 'lead screws + a differential per foot' },
@@ -1008,10 +1008,11 @@ refused anyway, so no order can be placed through this project."""`,
     ],
     intro: [
       'Combat robots almost always roll. A **true walker** moves only on legs: no wheels, no skids, no shuffling cams. Walking is so hard to make robust that NHRL rules give walkers a weight bonus, yet very few competitive true walkers exist. I want to build one that can actually fight.',
-      'The robot pairs a four-legged walking chassis with a full-body **shell spinner**, a heavy rotating ring around the whole robot that hits at over 250 mph at the tip. It started as my ECE 1100 Discovery Studio project at Georgia Tech and turned into something I’m determined to finish and bring to competition.',
+      'The robot pairs a four-legged walking chassis with a full-body **shell spinner**, a heavy rotating ring around the whole robot that hits at over 250 mph at the tip. It grows out of **Chonkiv**, RoboJackets’ 30 lb shuffling shell spinner and one of the more successful robots in its class at NHRL. It started as my ECE 1100 Discovery Studio project at Georgia Tech and turned into something I’m determined to finish and bring to competition.',
+      'The photos on this page are of Chonkiv, the precursor. **The new walker is intentionally not pictured.** I’m keeping its look under wraps until it debuts, so the mechanism is described in words only.',
     ],
     overview: [
-      { t: 'img', src: 'img/photos/battlebot-shell.jpg', caption: 'The current prototype with the shell installed. Legs, servos, wiring and the 3S 2200 mAh pack are visible inside the ring. It is roughly 18 inches across.' },
+      { t: 'gallery', items: [{ src: 'img/photos/chonkiv-dec-2024.jpg', caption: 'Chonkiv at NHRL, December 2024.' }, { src: 'img/photos/chonkiv-cutout.jpg', caption: 'Chonkiv, April 2024: the event it won.' }] },
       {
         t: 'flow',
         caption: 'How a step happens.',
@@ -1026,10 +1027,49 @@ refused anyway, so no order can be placed through this project."""`,
     ],
     pages: [
       {
+        slug: 'chonkiv',
+        title: 'Chonkiv: the precursor',
+        summary: 'RoboJackets’ 30 lb shuffling shell spinner, and what the walker takes from it.',
+        blocks: [
+          { t: 'p', text: 'Chonkiv is the fourth iteration of the **Chonk** line from Georgia Tech’s RoboJackets: a 30 lb full-body shell spinner that walks on **cam-driven shufflers** instead of wheels. Shufflers earn a walker weight bonus at NHRL, which lets the robot carry an unusually heavy shell. It competed as Chonkiii in 2023 and as Chonkiv from 2024.' },
+          {
+            t: 'stats',
+            items: [
+              { v: '27–8', l: 'career record at NHRL (30 lb)' },
+              { v: '19', l: 'knockouts' },
+              { v: '2×', l: 'event wins (Apr 2024, Feb 2025)' },
+              { v: '#10', l: 'all-time 30 lb ranking' },
+            ],
+          },
+          {
+            t: 'table',
+            head: ['Event', 'Result', 'Record'],
+            rows: [
+              ['Apr 2024', '1st place', '5–1'],
+              ['Dec 2024', '2nd place', '5–1'],
+              ['Feb 2025', '1st place', '4–0'],
+              ['Dec 2025', 'Semifinals', '3–1'],
+            ],
+          },
+          { t: 'h', text: 'What the walker keeps, and what it changes' },
+          {
+            t: 'cards',
+            items: [
+              { title: 'Keeps: the shell', body: 'A full-body shell spinner proved itself: no weak side, huge stored energy, and wins through attrition.' },
+              { title: 'Keeps: the walker bonus', body: 'Walking locomotion earns a weight bonus that goes straight into the weapon.' },
+              { title: 'Changes: true walking', body: 'Cam shufflers are only semi-walking. The new robot walks on real legs that lift and stride.' },
+              { title: 'Changes: the drive', body: 'Screw-driven legs with a differential replace the cams: stronger, self-locking, and steerable.' },
+            ],
+          },
+          { t: 'note', text: 'Record from the [NHRL wiki](https://wiki.nhrl.io/wiki/index.php/Chonkiv). Chonkiv is a RoboJackets team robot. The True Walker is my own next-generation design built from what it taught us.' },
+        ],
+      },
+      {
         slug: 'leg-mechanism',
         title: 'The leg mechanism',
         summary: 'Two lead screws, a differential and a scissor lift per foot.',
         blocks: [
+          { t: 'note', text: 'Described in words only. Images of the new design are being held back until it competes.' },
           { t: 'p', text: 'The hard problem in a walking robot is making every foot do two things, **lift** and **stride**, with enough force to carry the robot and survive hits. Joint servos are light but fragile, and they stall under combat loads. My design moves the work into screws.' },
           {
             t: 'steps',
@@ -1075,7 +1115,6 @@ refused anyway, so no order can be placed through this project."""`,
               { title: 'Custom controller', body: 'A Wi-Fi controller I built sends drive and weapon commands with low latency.' },
             ],
           },
-          { t: 'img', src: 'img/photos/outrunner.jpg' },
         ],
       },
       {
@@ -1087,6 +1126,7 @@ refused anyway, so no order can be placed through this project."""`,
             t: 'table',
             head: ['Stage', 'What happened'],
             rows: [
+              ['00 · Chonkiv', 'Learned from RoboJackets’ shuffling shell spinner: the shell concept and walker bonus work, but cams limit mobility.'],
               ['01 · Concept & CAD', 'Modeled the frame, leg kinematics and shell housing in Fusion 360, making sure the weapon clears the legs.'],
               ['02 · Brushed prototype', 'Four small DC motors on a test bench proved the gait concept, but torque and reliability fell short.'],
               ['03 · Electronics', 'Hand-soldered the ESCs and power distribution, set up the ESP32, and built the Wi-Fi controller.'],
