@@ -1,0 +1,98 @@
+---
+import type { Entry } from '../data/types';
+import ProjectVisual from './ProjectVisual.astro';
+import { url } from '../lib';
+
+interface Props {
+  entry: Entry;
+  base: string; // 'projects' | 'leadership'
+}
+const { entry: e, base } = Astro.props;
+---
+
+<a href={url(`${base}/${e.slug}/`)} class="card ecard" data-cat={e.category}>
+  <div class="thumb">
+    {e.cover ? <img src={url(e.cover)} alt="" loading="lazy" /> : e.viz && <ProjectVisual kind={e.viz} />}
+  </div>
+  <div class="body">
+    <div class="meta">
+      <span>{e.category}</span>
+      <span>{e.year}</span>
+    </div>
+    <h3>{e.title}</h3>
+    <p>{e.tagline}</p>
+    <div class="foot">
+      <div class="tags">{e.stack.slice(0, 3).map((t) => <span class="tag">{t}</span>)}</div>
+      {e.pages.length > 0 && <span class="pages">{e.pages.length} sections</span>}
+    </div>
+  </div>
+</a>
+
+<style>
+  .ecard {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .thumb {
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-2);
+  }
+  .thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top left;
+  }
+  .thumb :global(svg) {
+    height: 100%;
+  }
+  .body {
+    padding: 14px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+  }
+  .meta {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  h3 {
+    font-size: 1.02rem;
+  }
+  p {
+    margin: 0;
+    font-size: 0.86rem;
+    color: var(--muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .foot {
+    margin-top: auto;
+    padding-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  .foot .tags {
+    flex-wrap: nowrap;
+    overflow: hidden;
+  }
+  .pages {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+</style>

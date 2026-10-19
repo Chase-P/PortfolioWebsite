@@ -1,0 +1,247 @@
+---
+import Base from '../../layouts/Base.astro';
+import ProjectVisual from '../../components/ProjectVisual.astro';
+import { education } from '../../data/profile';
+import { work, leadership } from '../../data/experience';
+import { url, creditFor } from '../../lib';
+
+---
+
+<Base title="Experience" description="Education, work experience and leadership.">
+  <div class="container">
+    <header class="page-head">
+      <span class="label">Education · Work · Leadership</span>
+      <h1>Experience</h1>
+      <p class="lede">
+        Where I study, where I’ve worked, and the teams I’ve led. Every role opens into a full page with the details,
+        photos and what I built.
+      </p>
+    </header>
+
+    <!-- Education -->
+    <section class="edu card">
+      <div class="edu-img">
+        <img src={url(education.image)} alt="Georgia Tech campus" />
+        <span class="credit">{creditFor(education.image)}</span>
+      </div>
+      <div class="edu-body">
+        <span class="label">Education · {education.grad}</span>
+        <h2>{education.school}</h2>
+        <p class="deg">{education.degree} · {education.place}</p>
+        <div class="threads">
+          {education.threads.map((t) => (
+            <div><b>{t.name}</b><span class="muted">{t.note}</span></div>
+          ))}
+        </div>
+        <div class="tags">{education.activities.map((a) => <span class="tag">{a}</span>)}</div>
+        <p class="prior muted"><b>Before Tech:</b> {education.prior.school}. {education.prior.note}</p>
+        <a class="more" href={url('coursework/')}>See my coursework skill tree →</a>
+      </div>
+    </section>
+
+    <!-- Work -->
+    <section class="block">
+      <div class="section-head"><h2>Work</h2></div>
+      <div class="list">
+        {
+          work.map((e) => (
+            <a href={url(`experience/${e.slug}/`)} class="card row">
+              <div class="thumb">{e.cover ? <img src={url(e.cover)} alt="" /> : e.viz && <ProjectVisual kind={e.viz} />}</div>
+              <div class="body">
+                <div class="meta"><span>{e.year}</span><span>{e.role}</span></div>
+                <h3>{e.title} <span class="muted">· {e.category}</span></h3>
+                <p>{e.tagline}</p>
+                {e.metrics && (
+                  <div class="m">
+                    {e.metrics.slice(0, 4).map((m) => (
+                      <span><b>{m.v}</b> {m.l}</span>
+                    ))}
+                  </div>
+                )}
+                <span class="arrow">Open full write-up · {e.pages.length} sections →</span>
+              </div>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- Leadership -->
+    <section class="block">
+      <div class="section-head"><h2>Leadership</h2><span class="muted">Teams I’ve founded, led and mentored</span></div>
+      <div class="lgrid">
+        {
+          leadership.map((e) => (
+            <a href={url(`experience/${e.slug}/`)} class="card lcard">
+              <div class="lthumb">{e.cover ? <img src={url(e.cover)} alt="" /> : e.viz && <ProjectVisual kind={e.viz} />}</div>
+              <div class="lbody">
+                <div class="meta"><span>{e.category}</span><span>{e.year}</span></div>
+                <h3>{e.title}</h3>
+                <p>{e.tagline}</p>
+                <span class="arrow">Read more →</span>
+              </div>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .edu {
+    display: grid;
+    grid-template-columns: 1fr 1.25fr;
+    overflow: hidden;
+  }
+  .edu-img {
+    position: relative;
+    min-height: 100%;
+  }
+  .edu-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .credit {
+    position: absolute;
+    bottom: 8px;
+    left: 10px;
+    font-size: 0.68rem;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+  }
+  .edu-body {
+    padding: 28px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .deg {
+    margin: 0;
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .threads {
+    display: grid;
+    gap: 10px;
+  }
+  .threads div {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.92rem;
+  }
+  .prior {
+    font-size: 0.88rem;
+    margin: 0;
+  }
+  .more {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .block {
+    margin-top: 56px;
+  }
+  .list {
+    display: grid;
+    gap: 16px;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    overflow: hidden;
+  }
+  .thumb {
+    background: var(--bg-2);
+  }
+  .thumb img,
+  .lthumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .body {
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .body h3 {
+    font-size: 1.3rem;
+  }
+  .body h3 .muted {
+    font-weight: 400;
+    font-size: 1rem;
+  }
+  .body p,
+  .lbody p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.93rem;
+  }
+  .m {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 20px;
+    font-size: 0.84rem;
+    color: var(--muted);
+  }
+  .m b {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 1.15rem;
+    color: var(--text);
+  }
+  .arrow {
+    font-size: 0.88rem;
+    margin-top: auto;
+  }
+  .lgrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+  .lcard {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .lthumb {
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--bg-2);
+  }
+  .lbody {
+    padding: 16px 18px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+  }
+  .lbody h3 {
+    font-size: 1.1rem;
+  }
+  @media (max-width: 860px) {
+    .edu,
+    .row {
+      grid-template-columns: 1fr;
+    }
+    .edu-img {
+      aspect-ratio: 16 / 9;
+    }
+    .thumb {
+      aspect-ratio: 16 / 9;
+    }
+  }
+</style>

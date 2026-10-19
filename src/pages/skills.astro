@@ -1,0 +1,339 @@
+---
+import Base from '../layouts/Base.astro';
+import { skillGroups } from '../data/skills';
+import { awards } from '../data/profile';
+import { projects } from '../data/projects';
+import { allExperience } from '../data/experience';
+import { url } from '../lib';
+
+type Use = { title: string; href: string; tagline: string; cover?: string; kind: string };
+const entries = [
+  ...projects.map((e) => ({ e, base: 'projects', kind: 'Project' })),
+  ...allExperience.map((e) => ({ e, base: 'experience', kind: 'Experience' })),
+];
+const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9+#]/g, '');
+const initials = (s: string) => s.replace(/[^A-Za-z0-9+# ]/g, '').split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+
+// Where each skill shows up: explicit links plus any page whose stack mentions it.
+const usesFor = (name: string, explicit: string[] = []): Use[] => {
+  const key = norm(name.split(/[/(&]/)[0]);
+  return entries
+    .filter(({ e }) => explicit.includes(e.slug) || (key.length > 1 && e.stack.some((t) => norm(t).includes(key) || key.includes(norm(t)) && norm(t).length > 2)))
+    .map(({ e, base, kind }) => ({ title: e.title, href: url(`${base}/${e.slug}/`), tagline: e.tagline, cover: e.cover ? url(e.cover) : undefined, kind }));
+};
+const groups = skillGroups.map((g) => ({ ...g, items: g.items.map((s) => ({ ...s, uses: usesFor(s.name, s.projects) })) }));
+---
+
+<Base title="Skills" description="Languages, robotics, infrastructure and CAD, each linked to where I used it.">
+  <div class="container">
+    <header class="page-head">
+      <span class="label">Toolbox</span>
+      <h1>Skills</h1>
+      <p class="lede">Click any skill to see the projects and roles where I’ve used it. Awards are at the bottom.</p>
+      <div class="jump">
+        {groups.map((g) => <a href={`#${g.group.replace(/\W+/g, '-').toLowerCase()}`}>{g.group}</a>)}
+        <a href="#accolades" class="acc">Accolades</a>
+      </div>
+    </header>
+
+    {
+      groups.map((g) => (
+        <section class="group" id={g.group.replace(/\W+/g, '-').toLowerCase()}>
+          <div class="ghead">
+            <h2>{g.group}</h2>
+            {g.blurb && <p class="muted">{g.blurb}</p>}
+          </div>
+          <div class="skills">
+            {g.items.map((s) => (
+              <button class="card skill" data-skill={s.name}>
+                <div class="top">
+                  {s.logo ? <span class="logo" style={`--src: url('${url(`img/logos/${s.logo}.svg`)}')`} /> : <span class="logo text">{initials(s.name)}</span>}
+                  <b>{s.name}</b>
+                  {s.uses.length > 0 && <span class="count">{s.uses.length}</span>}
+                </div>
+                {s.note && <span class="note">{s.note}</span>}
+                <template>
+                  <div class="m-head">
+                    {s.logo ? <span class="logo big" style={`--src: url('${url(`img/logos/${s.logo}.svg`)}')`} /> : <span class="logo text big">{initials(s.name)}</span>}
+                    <div><span class="label">{g.group}</span><h3>{s.name}</h3>{s.note && <p class="muted">{s.note}</p>}</div>
+                  </div>
+                  <span class="label">{s.uses.length ? `Used in ${s.uses.length} place${s.uses.length > 1 ? 's' : ''}` : 'Where I use it'}</span>
+                  {s.uses.length ? (
+                    <div class="uses">
+                      {s.uses.map((u) => (
+                        <a href={u.href} class="use">
+                          {u.cover ? <img src={u.cover} alt="" /> : <span class="ph" />}
+                          <span class="ut">
+                            <span class="label">{u.kind}</span>
+                            <b>{u.title}</b>
+                            <span class="muted">{u.tagline}</span>
+                          </span>
+                        </a>
+                      ))}
+                    </div>
+                  ) : (
+                    <p class="muted">Used across coursework and day-to-day development. Ask me about it!</p>
+                  )}
+                </template>
+              </button>
+            ))}
+          </div>
+        </section>
+      ))
+    }
+
+    <section class="group" id="accolades">
+      <div class="ghead">
+        <h2>Accolades</h2>
+        <p class="muted">60+ awards across six years of competition, plus academic recognition.</p>
+      </div>
+      <div class="awards">
+        {
+          awards.map((a) => (
+            <div class="card tier">
+              <span class="label">{a.tier}</span>
+              <ul>{a.items.map((i) => <li><b>{i.name}</b><span class="muted">{i.note}</span></li>)}</ul>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+  </div>
+
+  <dialog id="skill-modal">
+    <button class="close" aria-label="Close">×</button>
+    <div class="m-body"></div>
+  </dialog>
+</Base>
+
+<script>
+  const dlg = document.getElementById('skill-modal') as HTMLDialogElement;
+  const body = dlg.querySelector('.m-body')!;
+  document.querySelectorAll<HTMLButtonElement>('.skill').forEach((b) =>
+    b.addEventListener('click', () => {
+      body.innerHTML = '';
+      body.append((b.querySelector('template') as HTMLTemplateElement).content.cloneNode(true));
+      dlg.showModal();
+    })
+  );
+  dlg.querySelector('.close')!.addEventListener('click', () => dlg.close());
+  dlg.addEventListener('click', (e) => {
+    if (e.target === dlg) dlg.close();
+  });
+</script>
+
+<style>
+  .jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 22px;
+  }
+  .jump a {
+    font-size: 0.82rem;
+    text-decoration: none;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--muted);
+    background: var(--surface);
+  }
+  .jump .acc {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .group {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 32px;
+    padding: 32px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .ghead h2 {
+    font-size: 1.4rem;
+    margin-bottom: 8px;
+  }
+  .ghead p {
+    font-size: 0.9rem;
+  }
+  .skills {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 10px;
+  }
+  .skill {
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+  .skill:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+  .top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+  }
+  .top b {
+    font-size: 0.94rem;
+    font-weight: 600;
+    flex: 1;
+  }
+  .count {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 1px 7px;
+    border-radius: 999px;
+  }
+  .logo {
+    width: 26px;
+    height: 26px;
+    flex: none;
+    background: var(--text);
+    -webkit-mask: var(--src) center / contain no-repeat;
+    mask: var(--src) center / contain no-repeat;
+  }
+  .logo.text {
+    -webkit-mask: none;
+    mask: none;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    display: grid;
+    place-items: center;
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    color: var(--muted);
+  }
+  .note {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  dialog {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0;
+    width: min(640px, calc(100vw - 32px));
+    max-height: 85vh;
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+  }
+  dialog::backdrop {
+    background: rgba(10, 15, 25, 0.45);
+    backdrop-filter: blur(3px);
+  }
+  .close {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    border: 0;
+    background: none;
+    font-size: 1.6rem;
+    line-height: 1;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .m-body {
+    padding: 24px 26px 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .m-body :global(.m-head) {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+  .m-body :global(.logo.big) {
+    width: 46px;
+    height: 46px;
+  }
+  .m-body :global(h3) {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 1.6rem;
+  }
+  .m-body :global(.m-head p) {
+    margin: 2px 0 0;
+    font-size: 0.9rem;
+  }
+  .m-body :global(.uses) {
+    display: grid;
+    gap: 10px;
+  }
+  .m-body :global(.use) {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 14px;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    text-decoration: none;
+    color: inherit;
+  }
+  .m-body :global(.use:hover) {
+    border-color: var(--accent);
+  }
+  .m-body :global(.use img),
+  .m-body :global(.use .ph) {
+    width: 120px;
+    height: 76px;
+    object-fit: cover;
+    object-position: top left;
+    border-radius: 6px;
+    background: var(--bg-2);
+  }
+  .m-body :global(.ut) {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.88rem;
+  }
+  .m-body :global(.ut .muted) {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 0.82rem;
+  }
+  .awards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 14px;
+  }
+  .tier {
+    padding: 18px 20px;
+  }
+  .tier ul {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0 0;
+    display: grid;
+    gap: 10px;
+  }
+  .tier li {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.92rem;
+  }
+  .tier li .muted {
+    font-size: 0.8rem;
+  }
+  @media (max-width: 820px) {
+    .group {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+  }
+</style>

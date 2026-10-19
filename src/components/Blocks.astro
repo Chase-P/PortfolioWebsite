@@ -1,0 +1,549 @@
+---
+import type { Block } from '../data/types';
+import ProjectVisual from './ProjectVisual.astro';
+import { md, url, creditFor } from '../lib';
+const cap = (src: string, c?: string) => [c, creditFor(src) && `Photo: ${creditFor(src)}`].filter(Boolean).join(' · ');
+
+interface Props {
+  blocks: Block[];
+}
+const { blocks } = Astro.props;
+---
+
+<div class="blocks">
+  {
+    blocks.map((b) => {
+      switch (b.t) {
+        case 'p':
+          return <p set:html={md(b.text)} />;
+        case 'h':
+          return <h3 class="bh">{b.text}</h3>;
+        case 'list':
+          return (
+            <ul>
+              {b.items.map((i) => (
+                <li set:html={md(i)} />
+              ))}
+            </ul>
+          );
+        case 'img':
+          return (
+            <figure>
+              <a href={url(b.src)} target="_blank" class="shot">
+                <img src={url(b.src)} alt={b.caption ?? ''} />
+              </a>
+              {cap(b.src, b.caption) && <figcaption>{cap(b.src, b.caption)}</figcaption>}
+            </figure>
+          );
+        case 'gallery':
+          return (
+            <div class="gallery">
+              {b.items.map((g) => (
+                <figure>
+                  <a href={url(g.src)} target="_blank" class="shot">
+                    <img src={url(g.src)} alt={g.caption ?? ''} />
+                  </a>
+                  {cap(g.src, g.caption) && <figcaption>{cap(g.src, g.caption)}</figcaption>}
+                </figure>
+              ))}
+            </div>
+          );
+        case 'code':
+          return (
+            <figure>
+              <pre class="code"><span class="lang">{b.lang}</span><code>{b.text}</code></pre>
+              {b.caption && <figcaption set:html={md(b.caption)} />}
+            </figure>
+          );
+        case 'formula':
+          return (
+            <figure class="formula">
+              <div>{b.text}</div>
+              {b.caption && <figcaption>{b.caption}</figcaption>}
+            </figure>
+          );
+        case 'stats':
+          return (
+            <div class="stats">
+              {b.items.map((s) => (
+                <div>
+                  <b>{s.v}</b>
+                  <span>{s.l}</span>
+                </div>
+              ))}
+            </div>
+          );
+        case 'viz':
+          return (
+            <figure>
+              <div class="shot viz">
+                <ProjectVisual kind={b.kind} />
+              </div>
+              {b.caption && <figcaption>{b.caption}</figcaption>}
+            </figure>
+          );
+        case 'flow':
+          return (
+            <figure>
+              <ol class="flow">
+                {b.steps.map((s, i) => (
+                  <li>
+                    <span class="n">{String(i + 1).padStart(2, '0')}</span>
+                    <b>{s.title}</b>
+                    {s.sub && <span class="sub">{s.sub}</span>}
+                  </li>
+                ))}
+              </ol>
+              {b.caption && <figcaption>{b.caption}</figcaption>}
+            </figure>
+          );
+        case 'steps':
+          return (
+            <ol class="steps">
+              {b.items.map((s) => (
+                <li>
+                  <b>{s.title}</b>
+                  <p set:html={md(s.body)} />
+                </li>
+              ))}
+            </ol>
+          );
+        case 'table':
+          return (
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    {b.head.map((h) => (
+                      <th>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {b.rows.map((r) => (
+                    <tr>
+                      {r.map((c) => (
+                        <td set:html={md(c)} />
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        case 'note':
+          return <aside class="note" set:html={md(b.text)} />;
+        case 'quote':
+          return <blockquote class="quote">{b.text}</blockquote>;
+        case 'cards':
+          return (
+            <div class="bcards">
+              {b.items.map((c) => (
+                <div class="bcard">
+                  {c.tag && <span class="btag">{c.tag}</span>}
+                  <b>{c.title}</b>
+                  <p set:html={md(c.body)} />
+                </div>
+              ))}
+            </div>
+          );
+        case 'terminal':
+          return (
+            <figure>
+              <div class="term">
+                <div class="tbar"><i /><i /><i /><span>{b.title ?? 'terminal'}</span></div>
+                <pre>{b.lines.map((l) => <span class={`l ${l.k ?? 'out'}`}>{l.text}</span>)}</pre>
+              </div>
+              {b.caption && <figcaption>{b.caption}</figcaption>}
+            </figure>
+          );
+        case 'pipeline':
+          return (
+            <figure>
+              <ol class="pipe">
+                {b.stages.map((st) => (
+                  <li class={st.status}>
+                    <span class="dot" />
+                    <b>{st.name}</b>
+                    <span class="st">{st.status === 'ok' ? 'passing' : st.status === 'fixed' ? 'fixed' : 'failing'}</span>
+                    {st.note && <span class="nt">{st.note}</span>}
+                  </li>
+                ))}
+              </ol>
+              {b.caption && <figcaption>{b.caption}</figcaption>}
+            </figure>
+          );
+      }
+    })
+  }
+</div>
+
+<style>
+  .blocks {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    font-size: 1.02rem;
+  }
+  .blocks > :global(p) {
+    margin: 0;
+    max-width: 72ch;
+  }
+  .bh {
+    font-size: 1.15rem;
+    margin-top: 14px;
+  }
+  ul {
+    margin: 0;
+    padding-left: 20px;
+    max-width: 72ch;
+  }
+  li {
+    margin-bottom: 8px;
+  }
+  .shot {
+    display: block;
+  }
+  .shot.viz {
+    background: var(--bg-2);
+  }
+  .gallery {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .code {
+    position: relative;
+    margin: 0;
+    background: #1b1a17;
+    color: #e9e5dc;
+    border-radius: 8px;
+    padding: 18px 20px;
+    overflow-x: auto;
+    font-size: 0.84rem;
+    line-height: 1.55;
+  }
+  .code code {
+    background: none;
+    border: 0;
+    padding: 0;
+    color: inherit;
+    font-size: inherit;
+  }
+  .lang {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: #8c877c;
+    text-transform: uppercase;
+  }
+  .formula > div {
+    font-family: var(--serif);
+    font-size: 1.3rem;
+    padding: 18px 22px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    overflow-x: auto;
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+  }
+  .stats div {
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border);
+  }
+  .stats div:last-child {
+    border-right: 0;
+  }
+  .stats b {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 1.7rem;
+    line-height: 1.1;
+  }
+  .stats span {
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .flow {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+  }
+  .flow li {
+    flex: 1 1 0;
+    min-width: 128px;
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    margin-right: 18px;
+    border-radius: 6px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .flow li:not(:last-child)::after {
+    content: '→';
+    position: absolute;
+    right: -15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 0.9rem;
+  }
+  .flow li:last-child {
+    margin-right: 0;
+  }
+  .flow .n {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--faint);
+  }
+  .flow b {
+    font-size: 0.95rem;
+  }
+  .flow .sub {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .steps {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: s;
+    display: grid;
+    gap: 16px;
+  }
+  .steps li {
+    counter-increment: s;
+    padding-left: 44px;
+    position: relative;
+    margin: 0;
+  }
+  .steps li::before {
+    content: counter(s, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    top: 1px;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--accent);
+  }
+  .steps p {
+    margin: 4px 0 0;
+    color: var(--muted);
+    max-width: 68ch;
+  }
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.9rem;
+  }
+  th {
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    font-weight: 500;
+    background: var(--bg-2);
+  }
+  th,
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:last-child td {
+    border-bottom: 0;
+  }
+  .note {
+    padding: 14px 18px;
+    background: var(--accent-soft);
+    border-radius: 6px;
+    font-size: 0.94rem;
+    max-width: 72ch;
+  }
+  .quote {
+    margin: 0;
+    padding: 6px 0 6px 20px;
+    border-left: 3px solid var(--accent);
+    font-family: var(--serif);
+    font-size: 1.25rem;
+    line-height: 1.45;
+    max-width: 60ch;
+  }
+  .bcards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 12px;
+  }
+  .bcard {
+    padding: 16px 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .bcard p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .btag {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+  }
+  .term {
+    background: #0d1117;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #222a36;
+  }
+  .tbar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 12px;
+    background: #161b24;
+    border-bottom: 1px solid #222a36;
+  }
+  .tbar i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #3a4252;
+  }
+  .tbar i:nth-child(1) {
+    background: #ff5f57;
+  }
+  .tbar i:nth-child(2) {
+    background: #febc2e;
+  }
+  .tbar i:nth-child(3) {
+    background: #28c840;
+  }
+  .tbar span {
+    margin-left: 8px;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: #7d8799;
+  }
+  .term pre {
+    margin: 0;
+    padding: 16px 18px;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: #c9d1d9;
+    overflow-x: auto;
+  }
+  .l {
+    display: block;
+    white-space: pre;
+  }
+  .l.cmd {
+    color: #e6edf3;
+    font-weight: 500;
+  }
+  .l.add {
+    color: #7ee787;
+  }
+  .l.del {
+    color: #ff7b72;
+  }
+  .l.ok {
+    color: #79c0ff;
+  }
+  .l.warn {
+    color: #f0b660;
+  }
+  .l.dim {
+    color: #6e7681;
+  }
+  .pipe {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+  }
+  .pipe li {
+    padding: 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    border-top: 3px solid var(--ok);
+  }
+  .pipe li.fixed {
+    border-top-color: var(--accent);
+  }
+  .pipe li.fail {
+    border-top-color: #d64545;
+  }
+  .pipe .st {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--ok);
+    text-transform: uppercase;
+  }
+  .pipe li.fixed .st {
+    color: var(--accent);
+  }
+  .pipe .nt {
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+  .pipe .dot {
+    display: none;
+  }
+  @media (max-width: 720px) {
+    .gallery {
+      grid-template-columns: 1fr;
+    }
+    .flow {
+      flex-direction: column;
+    }
+    .flow li {
+      margin: 0 0 14px;
+    }
+    .flow li:not(:last-child)::after {
+      content: '↓';
+      right: auto;
+      left: 18px;
+      top: auto;
+      bottom: -17px;
+      transform: none;
+    }
+  }
+</style>

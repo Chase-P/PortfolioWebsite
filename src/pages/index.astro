@@ -1,0 +1,327 @@
+---
+import Base from '../layouts/Base.astro';
+import PursuitSim from '../components/PursuitSim.astro';
+import EntryCard from '../components/EntryCard.astro';
+import { profile, intro, highlights, timeline, education } from '../data/profile';
+import { projects } from '../data/projects';
+import { work, leadership } from '../data/experience';
+import { courses } from '../data/coursework';
+import { skillGroups } from '../data/skills';
+import { md, url, hasFile, libraryPhotos } from '../lib';
+
+const featured = projects.filter((p) => p.featured).slice(0, 6);
+const photo = hasFile(profile.photo);
+const lib = libraryPhotos();
+const done = courses.filter((c) => c.status === 'done').length;
+const skillCount = skillGroups.reduce((n, g) => n + g.items.length, 0);
+const guide = [
+  { href: 'projects/', title: 'Projects', n: `${projects.length} projects`, text: 'Full-stack platforms, robotics, AI agents and research tools. Each one reads like its own documentation.' },
+  { href: 'experience/', title: 'Experience', n: `${work.length + leadership.length} roles`, text: 'Georgia Tech, my Adtran internship, teaching, and leadership on VEX 675, FRC 3318 and IEEE.' },
+  { href: 'coursework/', title: 'Coursework', n: `${done} courses done`, text: 'My Computer Engineering degree as an interactive skill tree, with what I learned in each course.' },
+  { href: 'skills/', title: 'Skills', n: `${skillCount} skills`, text: 'Languages, robotics, infrastructure and CAD. Click any skill to see where I’ve used it.' },
+  { href: 'resume/', title: 'Resume', n: 'PDF + contact', text: 'My one-page resume, plus every way to reach me.' },
+];
+---
+
+<Base>
+  <section class="hero container">
+    <div class="who">
+      <div class="portrait">
+        {photo ? <img src={url(profile.photo)} alt={profile.fullName} /> : <span>CP</span>}
+      </div>
+      <div>
+        <span class="label">Software Engineer · Georgia Tech Computer Engineering ’28</span>
+        <h1>Hi, I’m Chase.</h1>
+        <p class="lede">
+          I build software that has to work in the real world, from robot autonomy and embedded control to data
+          platforms, developer tooling and AI agents.
+        </p>
+        <div class="cta">
+          <a class="btn primary" href={url('projects/')}>See my work</a>
+          <a class="btn" href={url('resume/')}>Resume</a>
+          <a class="btn" href={profile.linkedin} target="_blank" rel="noopener">LinkedIn ↗</a>
+          <a class="btn" href={profile.github} target="_blank" rel="noopener">GitHub ↗</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="container">
+    <div class="stats">
+      {highlights.map((s) => <div><b>{s.v}</b><span>{s.l}</span></div>)}
+    </div>
+  </section>
+
+  <section class="section container about">
+    <div>
+      <span class="label">About me</span>
+      <h2>Background</h2>
+    </div>
+    <div class="story">
+      {intro.map((p) => <p set:html={md(p)} />)}
+      <div class="now card">
+        <div><span class="label">Now</span><b>Computer Engineering at Georgia Tech</b><span class="muted">{education.threads.map((t) => t.name).join(' · ')}</span></div>
+        <div><span class="label">Recently</span><b>Software Engineering Intern, Adtran</b><span class="muted">Summer 2026</span></div>
+        <div><span class="label">Looking for</span><b>Summer 2027 internships</b><span class="muted">Software, embedded, robotics</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section container">
+    <div class="section-head"><h2>Timeline</h2></div>
+    <ol class="tl">
+      {timeline.map((t) => <li><span class="y">{t.year}</span><span>{t.text}</span></li>)}
+    </ol>
+  </section>
+
+  <section class="section container">
+    <div class="section-head"><h2>Find your way around</h2></div>
+    <div class="guide">
+      {
+        guide.map((g) => (
+          <a href={url(g.href)} class="card gcard">
+            <span class="label">{g.n}</span>
+            <b>{g.title} <span class="arrow">→</span></b>
+            <span class="muted">{g.text}</span>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="section container">
+    <div class="section-head"><h2>Selected work</h2><a href={url('projects/')}>All {projects.length} projects →</a></div>
+    <div class="grid">{featured.map((p) => <EntryCard entry={p} base="projects" />)}</div>
+  </section>
+
+  {
+    lib.length > 0 && (
+      <section class="section container">
+        <div class="section-head"><h2>Photos</h2></div>
+        <div class="photos">
+          {lib.map((p) => (
+            <figure>
+              <img src={url(p.src)} alt={p.caption} loading="lazy" />
+              <figcaption>{p.caption}</figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  <section class="section container sim-wrap">
+    <div>
+      <span class="label">Try it</span>
+      <h2>Pure pursuit, live</h2>
+      <p class="muted">
+        This is the path-following algorithm from my competition robots, running in your browser. The robot chases a
+        point one lookahead distance ahead on the path and steers along the arc that reaches it (κ = 2x / L²). Click it
+        to generate a new path. <a href={url('projects/odometry-pure-pursuit/')}>How it works →</a>
+      </p>
+    </div>
+    <PursuitSim />
+  </section>
+</Base>
+
+<style>
+  .hero {
+    padding-top: 72px;
+    padding-bottom: 40px;
+  }
+  .who {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 44px;
+    align-items: center;
+  }
+  .portrait {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--accent), #6f8cff);
+    display: grid;
+    place-items: center;
+    box-shadow: 0 0 0 6px var(--bg), 0 0 0 7px var(--border);
+  }
+  .portrait img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .portrait span {
+    font-family: var(--serif);
+    font-size: 4rem;
+    color: #fff;
+  }
+  .hero h1 {
+    font-size: clamp(2.6rem, 5.5vw, 4rem);
+    margin: 8px 0 14px;
+  }
+  .lede {
+    font-size: 1.2rem;
+    color: var(--muted);
+    max-width: 58ch;
+  }
+  .cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .stats div {
+    padding: 22px 20px 22px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .stats div + div {
+    padding-left: 20px;
+    border-left: 1px solid var(--border);
+  }
+  .stats b {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 2.2rem;
+    line-height: 1;
+    color: var(--accent);
+  }
+  .stats span {
+    font-size: 0.84rem;
+    color: var(--muted);
+  }
+  .about {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 40px;
+  }
+  .story p {
+    font-size: 1.06rem;
+    max-width: 70ch;
+  }
+  .now {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    margin-top: 10px;
+  }
+  .now div {
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .now div + div {
+    border-left: 1px solid var(--border);
+  }
+  .now .muted {
+    font-size: 0.84rem;
+  }
+  .tl {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-left: 2px solid var(--border);
+  }
+  .tl li {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 16px;
+    padding: 10px 0 10px 22px;
+    position: relative;
+  }
+  .tl li::before {
+    content: '';
+    position: absolute;
+    left: -7px;
+    top: 17px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--accent);
+  }
+  .y {
+    font-family: var(--mono);
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .guide {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 12px;
+  }
+  .gcard {
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .gcard b {
+    font-size: 1.1rem;
+  }
+  .gcard .muted {
+    font-size: 0.88rem;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .photos {
+    columns: 3 260px;
+    gap: 12px;
+  }
+  .photos figure {
+    break-inside: avoid;
+    margin-bottom: 12px;
+  }
+  .photos img {
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .sim-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+  }
+  .sim-wrap a {
+    color: var(--accent);
+  }
+  @media (max-width: 860px) {
+    .who {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    .portrait {
+      width: 140px;
+      height: 140px;
+    }
+    .about,
+    .sim-wrap,
+    .now {
+      grid-template-columns: 1fr;
+    }
+    .now div + div {
+      border-left: 0;
+      border-top: 1px solid var(--border);
+    }
+    .stats {
+      grid-template-columns: 1fr 1fr;
+    }
+    .stats div:nth-child(3) {
+      padding-left: 0;
+      border-left: 0;
+    }
+    .stats div:nth-child(n + 3) {
+      border-top: 1px solid var(--border);
+    }
+  }
+</style>

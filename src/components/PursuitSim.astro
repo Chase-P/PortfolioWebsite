@@ -1,0 +1,224 @@
+---
+// Live pure pursuit simulation: a robot tracks a closed path using the
+// same curvature law used on my competition robots (κ = 2x / L²).
+---
+
+<div class="sim" id="sim">
+  <canvas aria-label="Animated robot following a path with pure pursuit"></canvas>
+  <div class="hud" aria-hidden="true">
+    <div><span>x</span><b data-k="x">0</b></div>
+    <div><span>y</span><b data-k="y">0</b></div>
+    <div><span>θ</span><b data-k="t">0</b></div>
+    <div><span>κ</span><b data-k="k">0</b></div>
+  </div>
+  <div class="hint">pure_pursuit.cpp · click to generate a new path</div>
+</div>
+
+<style>
+  .sim {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    max-height: 520px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background-color: var(--surface);
+    background-image: linear-gradient(var(--bg-2) 1px, transparent 1px), linear-gradient(90deg, var(--bg-2) 1px, transparent 1px);
+    background-size: 24px 24px;
+    overflow: hidden;
+    cursor: crosshair;
+  }
+  canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .hud {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    gap: 2px 16px;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    background: var(--surface);
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+  .hud span {
+    color: var(--accent);
+    margin-right: 6px;
+  }
+  .hud b {
+    font-weight: 500;
+    color: var(--text);
+    display: inline-block;
+    min-width: 5ch;
+  }
+  .hint {
+    position: absolute;
+    bottom: 10px;
+    right: 12px;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+</style>
+
+<script>
+  const root = document.getElementById('sim')!;
+  const canvas = root.querySelector('canvas')!;
+  const ctx = canvas.getContext('2d')!;
+  const hud = Object.fromEntries([...root.querySelectorAll<HTMLElement>('[data-k]')].map((el) => [el.dataset.k, el]));
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  type P = { x: number; y: number };
+  let W = 0, H = 0;
+  let path: P[] = [];
+  let robot = { x: 0, y: 0, th: 0 };
+  let trail: P[] = [];
+  let idx = 0;
+
+  function resize() {
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    const r = canvas.getBoundingClientRect();
+    W = r.width; H = r.height;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  // Closed, smooth path from a random sum of harmonics, sampled densely.
+  function makePath() {
+    const a = [1, 0.15 + Math.random() * 0.25, Math.random() * 0.15];
+    const ph = [0, Math.random() * 6.28, Math.random() * 6.28];
+    const lobes = 2 + Math.floor(Math.random() * 3);
+    const pts: P[] = [];
+    const R = Math.min(W, H) * 0.34;
+    for (let i = 0; i < 600; i++) {
+      const t = (i / 600) * Math.PI * 2;
+      const r = R * (a[0] + a[1] * Math.sin(lobes * t + ph[1]) + a[2] * Math.sin((lobes + 1) * t + ph[2]));
+      pts.push({ x: W / 2 + r * Math.cos(t), y: H / 2 + r * Math.sin(t) * 0.92 });
+    }
+    path = pts;
+    trail = [];
+    idx = 0;
+    const p0 = path[0], p1 = path[3];
+    robot = { x: p0.x + 30, y: p0.y + 30, th: Math.atan2(p1.y - p0.y, p1.x - p0.x) + 0.8 };
+  }
+
+  function step(dt: number) {
+    const L = Math.max(36, Math.min(W, H) * 0.09);
+    const v = Math.min(W, H) * 0.28;
+    // Advance nearest index (search a window ahead to stay monotonic).
+    let best = idx, bestD = Infinity;
+    for (let k = 0; k < 60; k++) {
+      const p = path[(idx + k) % path.length];
+      const d = (p.x - robot.x) ** 2 + (p.y - robot.y) ** 2;
+      if (d < bestD) { bestD = d; best = (idx + k) % path.length; }
+    }
+    idx = best;
+    // Lookahead point: first path point at least L away.
+    let g = path[idx];
+    for (let k = 0; k < path.length; k++) {
+      const p = path[(idx + k) % path.length];
+      if (Math.hypot(p.x - robot.x, p.y - robot.y) >= L) { g = p; break; }
+    }
+    const dx = g.x - robot.x, dy = g.y - robot.y;
+    const lateral = -Math.sin(robot.th) * dx + Math.cos(robot.th) * dy;
+    const kappa = (2 * lateral) / (L * L);
+    robot.th += v * kappa * dt;
+    robot.x += v * Math.cos(robot.th) * dt;
+    robot.y += v * Math.sin(robot.th) * dt;
+    trail.push({ x: robot.x, y: robot.y });
+    if (trail.length > 260) trail.shift();
+    return { g, L, kappa };
+  }
+
+  const css = (v: string) => getComputedStyle(root).getPropertyValue(v).trim();
+  function draw(g: P, L: number) {
+    const ink = css('--text'), acc = css('--accent'), faint = css('--faint'), surf = css('--surface');
+    ctx.clearRect(0, 0, W, H);
+    // Path
+    ctx.setLineDash([4, 8]);
+    ctx.strokeStyle = faint;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    path.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
+    ctx.closePath();
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // Trail
+    for (let i = 1; i < trail.length; i++) {
+      ctx.globalAlpha = (i / trail.length) * 0.9;
+      ctx.strokeStyle = acc;
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.moveTo(trail[i - 1].x, trail[i - 1].y);
+      ctx.lineTo(trail[i].x, trail[i].y);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    // Lookahead circle + goal
+    ctx.strokeStyle = faint;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(robot.x, robot.y, L, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.strokeStyle = ink;
+    ctx.beginPath();
+    ctx.moveTo(robot.x, robot.y);
+    ctx.lineTo(g.x, g.y);
+    ctx.stroke();
+    ctx.fillStyle = ink;
+    ctx.beginPath();
+    ctx.arc(g.x, g.y, 4, 0, Math.PI * 2);
+    ctx.fill();
+    // Robot
+    ctx.save();
+    ctx.translate(robot.x, robot.y);
+    ctx.rotate(robot.th);
+    ctx.fillStyle = surf;
+    ctx.strokeStyle = ink;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(-13, -11, 26, 22, 4);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = acc;
+    ctx.beginPath();
+    ctx.moveTo(13, 0);
+    ctx.lineTo(4, -6);
+    ctx.lineTo(4, 6);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  let last = performance.now();
+  let frame = 0;
+  function loop(now: number) {
+    const dt = Math.min((now - last) / 1000, 0.033);
+    last = now;
+    const { g, L, kappa } = step(dt);
+    draw(g, L);
+    if (frame++ % 6 === 0) {
+      hud.x.textContent = (robot.x - W / 2).toFixed(0);
+      hud.y.textContent = (H / 2 - robot.y).toFixed(0);
+      hud.t.textContent = ((((robot.th * 180) / Math.PI) % 360 + 360) % 360).toFixed(0) + '°';
+      hud.k.textContent = kappa.toFixed(4);
+    }
+    if (!reduced) requestAnimationFrame(loop);
+  }
+
+  resize();
+  makePath();
+  if (reduced) {
+    for (let i = 0; i < 240; i++) step(1 / 60);
+    loop(performance.now());
+  } else requestAnimationFrame(loop);
+
+  root.addEventListener('click', makePath);
+  new ResizeObserver(() => { resize(); makePath(); }).observe(root);
+</script>

@@ -1,0 +1,49 @@
+---
+import { profile } from '../data/profile';
+import { url } from '../lib';
+---
+
+<footer>
+  <div class="container inner">
+    <div>
+      <b>{profile.fullName}</b>
+      <span class="muted">Software Engineer · Computer Engineering, Georgia Tech</span>
+    </div>
+    <div class="links">
+      <a href={`mailto:${profile.email}`}>Email</a>
+      <a href={profile.github} target="_blank" rel="noopener">GitHub</a>
+      <a href={profile.linkedin} target="_blank" rel="noopener">LinkedIn</a>
+      <a href={url('resume/')}>Resume</a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  footer {
+    border-top: 1px solid var(--border);
+    margin-top: 80px;
+    padding: 28px 0 40px;
+    font-size: 0.88rem;
+  }
+  .inner {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .inner div:first-child {
+    display: flex;
+    flex-direction: column;
+  }
+  .links {
+    display: flex;
+    gap: 18px;
+  }
+  .links a {
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .links a:hover {
+    color: var(--accent);
+  }
+</style>

@@ -1,0 +1,124 @@
+---
+import Base from '../layouts/Base.astro';
+import { profile, education } from '../data/profile';
+import { url } from '../lib';
+
+const channels = [
+  { label: 'Email', value: profile.email, href: `mailto:${profile.email}` },
+  { label: 'School email', value: profile.schoolEmail, href: `mailto:${profile.schoolEmail}` },
+  { label: 'LinkedIn', value: 'linkedin.com/in/chase-punia', href: profile.linkedin },
+  { label: 'GitHub', value: 'github.com/Chase-P', href: profile.github },
+];
+---
+
+<Base title="Resume" description="Chase Punia’s resume and contact information.">
+  <div class="container">
+    <header class="page-head">
+      <span class="label">Open to Summer 2027 software engineering internships</span>
+      <h1>Resume</h1>
+      <p class="lede">
+        Software, embedded and robotics roles, or any hard systems problem. The one-page resume is below, and email is
+        the fastest way to reach me.
+      </p>
+    </header>
+
+    <div class="wrap">
+      <aside>
+        <a class="btn primary dl" href={url(profile.resume)} download="Chase_Punia_Resume.pdf">Download PDF</a>
+        <div class="channels">
+          {
+            channels.map((c) => (
+              <a href={c.href} class="card ch" target={c.href.startsWith('http') ? '_blank' : undefined} rel="noopener">
+                <span class="label">{c.label}</span>
+                <b>{c.value}</b>
+              </a>
+            ))
+          }
+        </div>
+        <div class="card ch">
+          <span class="label">Education</span>
+          <b>{education.school}</b>
+          <span class="muted">{education.degree} · {education.grad}</span>
+        </div>
+        <div class="card ch">
+          <span class="label">Based in</span>
+          <b>{profile.location}</b>
+          <span class="muted">Open to relocating for internships</span>
+        </div>
+      </aside>
+
+      <section class="resume card">
+        <div class="bar">
+          <span class="label">Resume · October 2026</span>
+          <a href={url(profile.resume)} target="_blank">Open in new tab ↗</a>
+        </div>
+        <iframe src={`${url(profile.resume)}#view=FitH`} title="Chase Punia resume"></iframe>
+      </section>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .wrap {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+  aside {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: sticky;
+    top: 84px;
+  }
+  .channels {
+    display: grid;
+    gap: 10px;
+  }
+  .ch {
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .ch b {
+    font-weight: 500;
+    word-break: break-all;
+  }
+  .dl {
+    justify-content: center;
+  }
+  .resume {
+    overflow: hidden;
+  }
+  .bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.85rem;
+  }
+  .bar a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  iframe {
+    width: 100%;
+    height: 1050px;
+    border: 0;
+    display: block;
+    background: #fff;
+  }
+  @media (max-width: 860px) {
+    .wrap {
+      grid-template-columns: 1fr;
+    }
+    aside {
+      position: static;
+    }
+    iframe {
+      height: 75vh;
+    }
+  }
+</style>

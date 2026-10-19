@@ -1,0 +1,216 @@
+---
+// Generated SVG illustrations, used where a project has no screenshot.
+import type { VizKind } from '../data/types';
+
+interface Props {
+  kind: VizKind;
+}
+const { kind } = Astro.props;
+const W = 400, H = 240;
+
+const pid = Array.from({ length: 121 }, (_, i) => {
+  const t = i / 120;
+  const y = 1 - Math.exp(-5 * t) * (Math.cos(18 * t) + 0.28 * Math.sin(18 * t));
+  return `${40 + t * 340},${200 - y * 130}`;
+}).join(' ');
+
+let seed = 7;
+const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const truth = (x: number) => 120 + 55 * Math.sin(x / 55) + 15 * Math.sin(x / 19);
+const noisy = Array.from({ length: 46 }, (_, i) => ({ x: 30 + i * 7.6, y: truth(30 + i * 7.6) + (rand() - 0.5) * 60 }));
+const fused = Array.from({ length: 90 }, (_, i) => `${30 + i * 3.9},${truth(30 + i * 3.9)}`).join(' ');
+
+const pp = (x: number) => 130 + 60 * Math.sin(x / 50) * Math.cos(x / 120);
+const pursuitPath = Array.from({ length: 100 }, (_, i) => `${30 + i * 3.45},${pp(30 + i * 3.45)}`).join(' ');
+const rx = 170, ry = pp(170) + 18, gx = 230, gy = pp(230);
+
+const board = Array.from({ length: 64 }, (_, i) => ({ x: 120 + (i % 8) * 20, y: 40 + Math.floor(i / 8) * 20, dark: (i + Math.floor(i / 8)) % 2 === 1 }));
+---
+
+<svg viewBox={`0 0 ${W} ${H}`} class="viz" role="img" aria-label={`${kind} illustration`}>
+  {kind === 'pid' && (
+    <g>
+      <line x1="40" y1="200" x2="385" y2="200" class="axis" />
+      <line x1="40" y1="40" x2="40" y2="200" class="axis" />
+      <line x1="40" y1="70" x2="385" y2="70" class="dash" />
+      <text x="320" y="62" class="lbl">setpoint</text>
+      <polyline points={pid} class="draw" />
+      <text x="48" y="224" class="lbl">time →</text>
+    </g>
+  )}
+  {kind === 'fusion' && (
+    <g>
+      {noisy.map((p) => <circle cx={p.x} cy={p.y} r="2.4" class="dot" />)}
+      <polyline points={fused} class="draw" />
+      <text x="30" y="226" class="lbl">· raw estimates</text>
+      <text x="180" y="226" class="lbl acc">— fused estimate</text>
+    </g>
+  )}
+  {kind === 'pursuit' && (
+    <g>
+      <polyline points={pursuitPath} class="dash" />
+      <circle cx={rx} cy={ry} r="62" class="look" />
+      <line x1={rx} y1={ry} x2={gx} y2={gy} class="ray" />
+      <circle cx={gx} cy={gy} r="4.5" class="acc-fill" />
+      <g transform={`translate(${rx} ${ry}) rotate(-12)`}>
+        <rect x="-14" y="-12" width="28" height="24" rx="3" class="bot" />
+        <path d="M14 0 L5 -6 L5 6Z" class="acc-fill" />
+      </g>
+      <text x="30" y="226" class="lbl">κ = 2x / L²</text>
+    </g>
+  )}
+  {kind === 'agents' && (
+    <g>
+      <path d="M200 64 L100 166 M200 64 L300 166 M200 64 L200 166 M100 166 L300 166" class="edge" />
+      <g class="node main"><circle cx="200" cy="60" r="28" /><text x="200" y="64">plan</text></g>
+      <g class="node"><circle cx="100" cy="170" r="22" /><text x="100" y="174">code</text></g>
+      <g class="node"><circle cx="200" cy="170" r="22" /><text x="200" y="174">test</text></g>
+      <g class="node"><circle cx="300" cy="170" r="22" /><text x="300" y="174">review</text></g>
+      <text x="236" y="40" class="lbl">frontier model</text>
+      <text x="140" y="222" class="lbl">local 30B model</text>
+    </g>
+  )}
+  {kind === 'cli' && (
+    <g class="term">
+      <rect x="30" y="24" width="340" height="192" rx="8" class="win" />
+      <text x="48" y="62" class="t-cmd">$ modernize --dry-run ./src</text>
+      <text x="48" y="92" class="t-del">- deprecated_call(x)</text>
+      <text x="48" y="112" class="t-add">+ modern_call(x)</text>
+      <text x="48" y="138" class="t-del">- OLD_KEYWORD value</text>
+      <text x="48" y="158" class="t-add">+ new_keyword value</text>
+      <text x="48" y="192" class="t-ok">✓ 50,000+ lines processed</text>
+    </g>
+  )}
+  {kind === 'combat' && (
+    <g transform="translate(190 120)">
+      <path d="M-70 -48 L58 -48 L58 48 L-70 48 Z" class="bot" />
+      <rect x="-62" y="-60" width="34" height="12" rx="2" class="wheel" />
+      <rect x="-62" y="48" width="34" height="12" rx="2" class="wheel" />
+      <g class="spin"><rect x="52" y="-58" width="14" height="116" rx="5" class="acc-fill" /></g>
+      <text x="-160" y="106" class="lbl">antweight · 1 lb</text>
+    </g>
+  )}
+  {kind === 'chess' && (
+    <g>
+      {board.map((s) => <rect x={s.x} y={s.y} width="20" height="20" class={s.dark ? 'sq-d' : 'sq-l'} />)}
+      <text x="150" y="98" class="piece">♞</text>
+      <text x="210" y="158" class="piece acc">♛</text>
+    </g>
+  )}
+</svg>
+
+<style>
+  .viz {
+    width: 100%;
+    height: auto;
+    display: block;
+    background: var(--bg-2);
+  }
+  .axis {
+    stroke: var(--border-strong);
+    stroke-width: 1.2;
+  }
+  .dash {
+    fill: none;
+    stroke: var(--faint);
+    stroke-dasharray: 4 5;
+    stroke-width: 1.3;
+  }
+  .lbl {
+    font-family: var(--mono);
+    font-size: 11px;
+    fill: var(--muted);
+  }
+  .lbl.acc,
+  .piece.acc {
+    fill: var(--accent);
+  }
+  .draw {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2.2;
+    stroke-linecap: round;
+  }
+  .dot {
+    fill: var(--faint);
+  }
+  .look {
+    fill: none;
+    stroke: var(--border-strong);
+  }
+  .ray {
+    stroke: var(--accent);
+    stroke-width: 1.3;
+  }
+  .acc-fill {
+    fill: var(--accent);
+  }
+  .bot {
+    fill: var(--surface);
+    stroke: var(--text);
+    stroke-width: 1.6;
+  }
+  .wheel {
+    fill: var(--text);
+  }
+  .spin {
+    transform-origin: center;
+    transform-box: fill-box;
+    animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  .edge {
+    stroke: var(--border-strong);
+    stroke-width: 1.3;
+    fill: none;
+  }
+  .node circle {
+    fill: var(--surface);
+    stroke: var(--text);
+    stroke-width: 1.4;
+  }
+  .node.main circle {
+    stroke: var(--accent);
+    stroke-width: 2;
+  }
+  .node text {
+    font-family: var(--mono);
+    font-size: 11px;
+    fill: var(--text);
+    text-anchor: middle;
+  }
+  .win {
+    fill: var(--surface);
+    stroke: var(--border);
+  }
+  .term text {
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+  .t-cmd {
+    fill: var(--text);
+  }
+  .t-del {
+    fill: #c0392b;
+  }
+  .t-add {
+    fill: var(--ok);
+  }
+  .t-ok {
+    fill: var(--accent);
+  }
+  .sq-l {
+    fill: var(--surface);
+  }
+  .sq-d {
+    fill: var(--border-strong);
+  }
+  .piece {
+    font-size: 22px;
+    fill: var(--text);
+  }
+</style>

@@ -1,0 +1,11 @@
+---
+import EntryPage from '../../../components/EntryPage.astro';
+import { projects } from '../../../data/projects';
+
+export function getStaticPaths() {
+  return projects.map((entry) => ({ params: { slug: entry.slug }, props: { entry } }));
+}
+const { entry } = Astro.props;
+---
+
+<EntryPage entry={entry} base="projects" baseLabel="Projects" all={projects} />

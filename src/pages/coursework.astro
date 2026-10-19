@@ -1,0 +1,589 @@
+---
+import Base from '../layouts/Base.astro';
+import { courses, type Course } from '../data/coursework';
+import { url } from '../lib';
+
+// Top-down layout: row = prerequisite depth, order within a row follows parents (fewer crossings).
+const byId = Object.fromEntries(courses.map((c) => [c.id, c]));
+const memo: Record<string, number> = {};
+const tier = (c: Course): number =>
+  (memo[c.id] ??= c.tier ?? (c.prereqs?.length ? 1 + Math.max(...c.prereqs.map((p) => tier(byId[p]))) : 0));
+const branchOrder = ['Software', 'Hardware', 'Math', 'Science', 'Capstone', 'Core'];
+const rows: Course[][] = [];
+courses.forEach((c) => (rows[tier(c) + 1] ??= []).push(c));
+for (let i = 0; i < rows.length; i++) rows[i] ??= [];
+
+const CW = 124, RH = 138, R = 32, TOP = 64;
+const W = CW * Math.max(...rows.map((r) => r.length)) + 40;
+const pos: Record<string, { x: number; y: number }> = {};
+rows.forEach((row, ri) => {
+  const key = (c: Course) =>
+    ri === 0 || !c.prereqs?.length
+      ? branchOrder.indexOf(c.branch) * 1000
+      : c.prereqs.reduce((s, p) => s + pos[p].x, 0) / c.prereqs.length;
+  row.sort((a, b) => key(a) - key(b) || branchOrder.indexOf(a.branch) - branchOrder.indexOf(b.branch));
+  const x0 = (W - (row.length - 1) * CW) / 2;
+  row.forEach((c, i) => (pos[c.id] = { x: x0 + i * CW, y: TOP + ri * RH }));
+});
+const H = TOP + (rows.length - 1) * RH + 70;
+
+const edges = courses.flatMap((c) =>
+  (c.prereqs ?? []).map((p) => {
+    const a = pos[p], b = pos[c.id];
+    const y1 = a.y + R, y2 = b.y - R, my = (y1 + y2) / 2;
+    return { from: p, to: c.id, done: byId[p].status === 'done' && c.status !== 'planned', d: `M${a.x},${y1} C${a.x},${my} ${b.x},${my} ${b.x},${y2}` };
+  })
+);
+
+const count = (s: string) => courses.filter((c) => c.status === s).length;
+const done = count('done'), prog = count('progress'), planned = count('planned');
+const pct = Math.round(((done + prog * 0.5) / courses.length) * 100);
+const rowNames = ['Core curriculum · years 1–2', 'Foundations', 'Core I', 'Core II', 'Upper division', 'Advanced', 'Capstone'];
+const statusLabel = { done: 'Completed', progress: 'In progress · Fall 2026', planned: 'Locked · planned' };
+const data = courses.map((c) => ({
+  ...c,
+  unlocks: courses.filter((x) => x.prereqs?.includes(c.id)).map((x) => x.id),
+  applied: c.applied?.map((a) => ({ ...a, href: a.href.startsWith('http') ? a.href : url(a.href) })),
+}));
+---
+
+<Base title="Coursework" description="My Georgia Tech Computer Engineering coursework as an interactive skill tree.">
+  <div class="container">
+    <header class="page-head">
+      <span class="label">Georgia Tech · B.S. Computer Engineering · 2028</span>
+      <h1>Coursework</h1>
+      <p class="lede">My degree as a skill tree. Click any course to see what I learned in it and where I’ve used it since.</p>
+    </header>
+
+    <div class="game">
+      <div class="hud">
+        <div class="lvl">
+          <span class="k">Degree progress</span>
+          <div class="xp"><span style={`width:${pct}%`}></span></div>
+          <span class="v">{pct}%</span>
+        </div>
+        <div class="counts">
+          <span><i class="d done"></i>{done} completed</span>
+          <span><i class="d progress"></i>{prog} in progress</span>
+          <span><i class="d planned"></i>{planned} locked</span>
+        </div>
+        <div class="branches">
+          <button class="on" data-b="all">All</button>
+          {branchOrder.map((b) => <button data-b={b} style={`--c: var(--b-${b.toLowerCase()})`}>{b}</button>)}
+        </div>
+      </div>
+
+      <div class="board">
+        <div class="tree-scroll">
+          <svg viewBox={`0 0 ${W} ${H}`} id="tree" role="group" aria-label="Course skill tree">
+            <defs>
+              <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+                <feGaussianBlur stdDeviation="6" result="b" />
+                <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+            </defs>
+            {rows.map((_, i) => (
+              <g class="row-label">
+                <line x1="0" x2={W} y1={TOP + i * RH} y2={TOP + i * RH} />
+                <text x="6" y={TOP + i * RH - 40}>{rowNames[i]}</text>
+              </g>
+            ))}
+            <g class="edges">
+              {edges.map((e) => <path d={e.d} class:list={{ done: e.done }} data-from={e.from} data-to={e.to} />)}
+            </g>
+            {courses.map((c) => {
+              const { x, y } = pos[c.id];
+              const circ = 2 * Math.PI * (R + 5);
+              return (
+                <g class={`node ${c.status}`} data-id={c.id} data-branch={c.branch} transform={`translate(${x} ${y})`} style={`--c: var(--b-${c.branch.toLowerCase()})`} tabindex="0" role="button" aria-label={`${c.code} ${c.name}`}>
+                  <circle class="halo" r={R + 5} />
+                  {c.status === 'progress' && <circle class="ring" r={R + 5} stroke-dasharray={`${circ * 0.5} ${circ}`} transform="rotate(-90)" />}
+                  <circle class="core" r={R}  />
+                  {c.status === 'planned' ? (
+                    <path class="lock" d="M-7 -1 h14 v11 h-14z M-4.5 -1 v-4 a4.5 4.5 0 0 1 9 0 v4" />
+                  ) : (
+                    <text class="num" y="5">{c.code.split(' ')[c.branch === 'Core' ? 0 : 1]}</text>
+                  )}
+                  <text class="nm" y={R + 20}>{c.short}</text>
+                </g>
+              );
+            })}
+          </svg>
+        </div>
+
+        <aside class="panel" id="panel" aria-live="polite"></aside>
+      </div>
+    </div>
+
+  </div>
+</Base>
+
+<script define:vars={{ data, statusLabel }}>
+  const byId = Object.fromEntries(data.map((c) => [c.id, c]));
+  const svg = document.getElementById('tree');
+  const panel = document.getElementById('panel');
+  const nodes = [...svg.querySelectorAll('.node')];
+  const paths = [...svg.querySelectorAll('.edges path')];
+
+  const walk = (id, dir, acc = new Set()) => {
+    (dir === 'up' ? byId[id].prereqs || [] : byId[id].unlocks).forEach((n) => {
+      if (!acc.has(n)) { acc.add(n); walk(n, dir, acc); }
+    });
+    return acc;
+  };
+  const chip = (id) => `<button class="go" data-go="${id}" style="--c:var(--b-${byId[id].branch.toLowerCase()})">${byId[id].code}</button>`;
+
+  function select(id) {
+    const up = walk(id, 'up'), down = walk(id, 'down');
+    const lit = new Set([id, ...up, ...down]);
+    svg.classList.add('focus');
+    nodes.forEach((n) => {
+      n.classList.toggle('lit', lit.has(n.dataset.id));
+      n.classList.toggle('sel', n.dataset.id === id);
+    });
+    paths.forEach((p) => {
+      const f = p.dataset.from, t = p.dataset.to;
+      p.classList.toggle('lit', (t === id || up.has(t)) && (up.has(f)) || f === id || (down.has(t) && (down.has(f) || f === id)));
+    });
+    const c = byId[id];
+    panel.style.setProperty('--c', `var(--b-${c.branch.toLowerCase()})`);
+    panel.innerHTML = `
+      <div class="ph">
+        <span class="st ${c.status}">${statusLabel[c.status]}</span>
+        <span class="br">${c.branch}</span>
+      </div>
+      <h3>${c.code}</h3>
+      <p class="cn">${c.name}</p>
+      <p class="ab">${c.about}</p>
+      ${c.takeaway ? `<div class="tk"><span class="k">Key takeaway</span><p>${c.takeaway}</p></div>` : ''}
+      <div class="sec"><span class="k">${c.status === 'planned' ? 'Will cover' : 'Topics'}</span>
+        <div class="topics">${c.topics.map((t) => `<span>${t}</span>`).join('')}</div></div>
+      ${c.skills.length ? `<div class="sec"><span class="k">What I can do now</span><ul>${c.skills.map((s) => `<li>${s}</li>`).join('')}</ul></div>` : ''}
+      ${c.applied?.length ? `<div class="sec"><span class="k">Where I’ve used it</span><div class="applied">${c.applied.map((a) => `<a href="${a.href}">${a.label} →</a>`).join('')}</div></div>` : ''}
+      <div class="rel">
+        <div><span class="k">Builds on</span><div>${(c.prereqs || []).map(chip).join('') || '<em>Starting point</em>'}</div></div>
+        <div><span class="k">Unlocks</span><div>${c.unlocks.map(chip).join('') || '<em>Final step</em>'}</div></div>
+      </div>`;
+    panel.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => select(b.dataset.go)));
+  }
+
+  nodes.forEach((n) => {
+    n.addEventListener('click', () => select(n.dataset.id));
+    n.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(n.dataset.id); } });
+  });
+
+  const btns = document.querySelectorAll('.branches button');
+  btns.forEach((b) => b.addEventListener('click', () => {
+    btns.forEach((x) => x.classList.toggle('on', x === b));
+    const br = b.dataset.b;
+    svg.classList.toggle('filtered', br !== 'all');
+    nodes.forEach((n) => n.classList.toggle('dim', br !== 'all' && n.dataset.branch !== br));
+  }));
+
+  select('1332');
+</script>
+
+<style>
+  .game {
+    --g-bg: var(--bg-2);
+    --g-panel: var(--surface);
+    --g-line: var(--border);
+    --g-text: var(--text);
+    --g-muted: var(--muted);
+    --b-software: #2448c8;
+    --b-hardware: #0e8a8a;
+    --b-math: #7a4fd6;
+    --b-science: #2f8f4e;
+    --b-capstone: #c27c0e;
+    --b-core: #8a6d5a;
+    color: var(--g-text);
+    background:
+      radial-gradient(color-mix(in srgb, var(--text) 9%, transparent) 1px, transparent 1px) 0 0 / 22px 22px,
+      var(--g-bg);
+    border: 1px solid var(--g-line);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .hud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 28px;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--g-line);
+    background: var(--surface);
+  }
+  .k {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--g-muted);
+  }
+  .lvl {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .xp {
+    width: 180px;
+    height: 10px;
+    border-radius: 5px;
+    background: var(--bg-2);
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px var(--g-line);
+  }
+  .xp span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--b-science), var(--b-software));
+  }
+  .v {
+    font-family: var(--mono);
+    font-weight: 500;
+  }
+  .counts {
+    display: flex;
+    gap: 16px;
+    font-size: 0.85rem;
+    color: var(--g-muted);
+  }
+  .counts span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .d {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+  .d.done {
+    background: var(--b-science);
+    box-shadow: 0 0 6px var(--b-science);
+  }
+  .d.progress {
+    border: 2px solid var(--b-capstone);
+  }
+  .d.planned {
+    border: 1.5px dashed var(--g-muted);
+  }
+  .branches {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-left: auto;
+  }
+  .branches button {
+    font: inherit;
+    font-size: 0.78rem;
+    padding: 4px 11px;
+    border-radius: 999px;
+    border: 1px solid var(--g-line);
+    background: transparent;
+    color: var(--g-muted);
+    cursor: pointer;
+  }
+  .branches button:hover {
+    color: var(--g-text);
+  }
+  .branches button.on {
+    color: var(--g-bg);
+    background: var(--c, var(--g-text));
+    border-color: var(--c, var(--g-text));
+  }
+  .board {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+  }
+  .tree-scroll {
+    overflow-x: auto;
+    padding: 4px 8px 12px;
+  }
+  svg {
+    width: 100%;
+    min-width: 600px;
+    height: auto;
+    display: block;
+  }
+  .row-label line {
+    stroke: var(--border);
+  }
+  .row-label text {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    fill: var(--faint);
+  }
+  .edges path {
+    fill: none;
+    stroke: var(--border-strong);
+    stroke-width: 1.8;
+    stroke-dasharray: 4 5;
+    transition: opacity 0.2s, stroke 0.2s;
+  }
+  .edges path.done {
+    stroke: var(--faint);
+    stroke-dasharray: none;
+  }
+  .node {
+    cursor: pointer;
+    outline: none;
+    transition: opacity 0.2s;
+  }
+  .node .halo {
+    fill: none;
+    stroke: var(--c);
+    stroke-width: 1.5;
+    opacity: 0.25;
+  }
+  .node .core {
+    fill: var(--c);
+    stroke: var(--surface);
+    stroke-width: 1.5;
+    transition: transform 0.15s;
+  }
+  .node .num {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    font-weight: 600;
+    text-anchor: middle;
+    fill: #fff;
+    pointer-events: none;
+  }
+  .node .nm {
+    font-family: var(--sans);
+    font-size: 12.5px;
+    font-weight: 600;
+    text-anchor: middle;
+    fill: var(--g-text);
+    pointer-events: none;
+  }
+  .node.progress .core {
+    fill: var(--surface);
+    stroke: var(--c);
+    stroke-width: 2.5;
+  }
+  .node.progress .num {
+    fill: var(--c);
+  }
+  .node.progress .ring {
+    fill: none;
+    stroke: var(--c);
+    stroke-width: 3.5;
+    stroke-linecap: round;
+    animation: charge 2.4s ease-in-out infinite alternate;
+  }
+  @keyframes charge {
+    from {
+      opacity: 0.55;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  .node.planned .core {
+    fill: var(--surface);
+    stroke: var(--border-strong);
+    stroke-dasharray: 3 3;
+  }
+  .node.planned .halo {
+    opacity: 0.1;
+  }
+  .node.planned .nm {
+    fill: var(--g-muted);
+  }
+  .lock {
+    fill: none;
+    stroke: var(--faint);
+    stroke-width: 1.8;
+    stroke-linejoin: round;
+  }
+  .node:hover .core,
+  .node:focus-visible .core {
+    transform: scale(1.08);
+  }
+  .node.sel .halo {
+    opacity: 1;
+    stroke-width: 3;
+  }
+  #tree.focus .node:not(.lit) {
+    opacity: 0.28;
+  }
+  #tree.focus .edges path {
+    opacity: 0.25;
+  }
+  #tree.focus .edges path.lit {
+    opacity: 1;
+    stroke: var(--text);
+    stroke-dasharray: none;
+  }
+  #tree.filtered .node.dim {
+    opacity: 0.12;
+  }
+  .panel {
+    border-left: 1px solid var(--g-line);
+    background: var(--surface);
+    padding: 20px 22px 24px;
+    max-height: 980px;
+    overflow-y: auto;
+  }
+  .panel :global(.ph) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .panel :global(.st) {
+    font-size: 0.72rem;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-weight: 500;
+  }
+  .panel :global(.st.done) {
+    background: var(--ok-soft);
+    color: var(--b-science);
+  }
+  .panel :global(.st.progress) {
+    background: var(--warn-soft);
+    color: var(--warn);
+  }
+  .panel :global(.st.planned) {
+    border: 1px dashed var(--g-muted);
+    color: var(--g-muted);
+  }
+  .panel :global(.br) {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--c);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .panel :global(h3) {
+    font-family: var(--mono);
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--c);
+    margin-top: 14px;
+  }
+  .panel :global(.cn) {
+    font-family: var(--serif);
+    font-size: 1.3rem;
+    line-height: 1.25;
+    margin: 4px 0 12px;
+  }
+  .panel :global(.ab) {
+    font-size: 0.92rem;
+    color: var(--muted);
+  }
+  .panel :global(.tk) {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--c) 8%, transparent);
+    border-left: 3px solid var(--c);
+  }
+  .panel :global(.tk p) {
+    margin: 6px 0 0;
+    font-size: 0.92rem;
+    font-family: var(--serif);
+    line-height: 1.45;
+  }
+  .panel :global(.sec) {
+    margin-top: 18px;
+  }
+  .panel :global(.topics) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 8px;
+  }
+  .panel :global(.topics span) {
+    font-size: 0.78rem;
+    padding: 3px 9px;
+    border-radius: 5px;
+    background: var(--bg-2);
+    border: 1px solid var(--g-line);
+  }
+  .panel :global(ul) {
+    margin: 8px 0 0;
+    padding-left: 18px;
+    font-size: 0.9rem;
+  }
+  .panel :global(li) {
+    margin-bottom: 4px;
+  }
+  .panel :global(li::marker) {
+    color: var(--c);
+  }
+  .panel :global(.applied) {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .panel :global(.applied a) {
+    font-size: 0.88rem;
+    color: var(--c);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--c) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--c) 30%, transparent);
+  }
+  .panel :global(.applied a:hover) {
+    background: color-mix(in srgb, var(--c) 20%, transparent);
+  }
+  .panel :global(.rel) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--g-line);
+  }
+  .panel :global(.rel > div > div) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 6px;
+  }
+  .panel :global(.go) {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    padding: 3px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--c);
+    color: var(--c);
+    background: transparent;
+    cursor: pointer;
+  }
+  .panel :global(.go:hover) {
+    background: color-mix(in srgb, var(--c) 18%, transparent);
+  }
+  .panel :global(em) {
+    font-size: 0.8rem;
+    color: var(--g-muted);
+  }
+  .also {
+    margin-top: 16px;
+    font-size: 0.88rem;
+    color: var(--muted);
+  }
+  .also .label {
+    margin-right: 8px;
+  }
+  @media (max-width: 1000px) {
+    .board {
+      grid-template-columns: 1fr;
+    }
+    .panel {
+      border-left: 0;
+      border-top: 1px solid var(--g-line);
+      max-height: none;
+    }
+    .branches {
+      margin-left: 0;
+    }
+  }
+</style>

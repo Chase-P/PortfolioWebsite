@@ -1,0 +1,183 @@
+---
+import { url } from '../lib';
+import { profile } from '../data/profile';
+
+const links = [
+  ['Home', ''],
+  ['Projects', 'projects/'],
+  ['Experience', 'experience/'],
+  ['Coursework', 'coursework/'],
+  ['Skills', 'skills/'],
+  ['Resume', 'resume/'],
+];
+
+const base = url('');
+const path = Astro.url.pathname;
+const isActive = (p: string) => (p === '' ? path === base || path === base.replace(/\/$/, '') : path.startsWith(url(p)));
+---
+
+<header class="nav">
+  <div class="container inner">
+    <a href={base} class="logo">
+      <span class="name">{profile.fullName}</span>
+      <span class="sep">·</span>
+      <span class="role">Software Engineer</span>
+    </a>
+    <button class="menu" aria-label="Open menu" aria-expanded="false">
+      <span></span><span></span>
+    </button>
+    <nav>
+      {links.map(([label, p]) => <a href={url(p)} class:list={{ active: isActive(p) }}>{label}</a>)}
+      <button class="theme" aria-label="Toggle dark mode" title="Toggle dark mode">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path>
+        </svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .logo {
+    gap: 8px;
+    font-size: 0.98rem;
+  }
+  .name {
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .sep {
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .role {
+    color: var(--muted);
+    font-weight: 500;
+  }
+  @media (max-width: 420px) {
+    .sep,
+    .role {
+      display: none;
+    }
+  }
+  nav {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+  nav a {
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 0.9rem;
+    padding: 6px 10px;
+    border-radius: 6px;
+  }
+  nav a:hover {
+    color: var(--text);
+    background: var(--bg-2);
+  }
+  nav a.active {
+    color: var(--text);
+    background: var(--bg-2);
+    box-shadow: inset 0 -2px 0 var(--accent);
+  }
+  .theme {
+    margin-left: 6px;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 6px;
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+  }
+  .theme:hover {
+    color: var(--text);
+  }
+  .menu {
+    display: none;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    width: 38px;
+    height: 34px;
+    cursor: pointer;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+  }
+  .menu span {
+    width: 16px;
+    height: 1.5px;
+    background: var(--text);
+  }
+  @media (max-width: 900px) {
+    .menu {
+      display: flex;
+    }
+    nav {
+      display: none;
+      position: absolute;
+      top: 60px;
+      left: 0;
+      right: 0;
+      flex-direction: column;
+      align-items: stretch;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 16px 16px;
+    }
+    nav.open {
+      display: flex;
+    }
+    nav a {
+      padding: 10px 8px;
+    }
+    .theme {
+      margin: 8px 0 0;
+    }
+  }
+</style>
+
+<script>
+  const menu = document.querySelector<HTMLButtonElement>('.nav .menu')!;
+  const nav = document.querySelector('.nav nav')!;
+  menu.addEventListener('click', () => {
+    const open = nav.classList.toggle('open');
+    menu.setAttribute('aria-expanded', String(open));
+  });
+  document.querySelector('.nav .theme')!.addEventListener('click', () => {
+    const root = document.documentElement;
+    const dark =
+      root.dataset.theme === 'dark' ||
+      (!root.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
+    root.dataset.theme = dark ? 'light' : 'dark';
+    try {
+      localStorage.setItem('theme', root.dataset.theme);
+    } catch (e) {}
+  });
+</script>
