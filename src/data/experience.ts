@@ -8,7 +8,7 @@ export const work: Entry[] = [
     slug: 'adtran',
     title: 'Adtran',
     tagline:
-      'Technical Intern II, Software Engineering. I built the refactoring CLI that modernized 50,000+ lines of legacy code, re-architected the Jenkins-to-WSL build pipeline across 8 ROADM modules, and wrote Robot Framework test suites.',
+      'Technical Intern II, Software Engineering. I built the refactoring CLI that modernized a legacy codebase, re-architected the Jenkins-to-WSL build pipeline across 8 ROADM modules, and wrote Robot Framework test suites.',
     category: 'Software Engineering Intern',
     year: 'May – Aug 2026',
     role: 'Technical Intern II · Norcross, GA',
@@ -16,7 +16,6 @@ export const work: Entry[] = [
     cover: P('adtran-campus.jpg'),
     featured: true,
     metrics: [
-      { v: '50K+', l: 'lines of legacy code modernized' },
       { v: '8', l: 'ROADM modules on the rebuilt pipeline' },
       { v: 'days → min', l: 'cleanup time per pass' },
     ],
@@ -66,7 +65,7 @@ export const work: Entry[] = [
               { title: 'Built for other people', body: 'Clear help text, sensible defaults and documentation meant other teams could pick it up without me. It became their standard tool for this cleanup.' },
             ],
           },
-          { t: 'stats', items: [{ v: '50,000+', l: 'lines modernized' }, { v: 'minutes', l: 'per full pass, down from days' }] },
+          { t: 'stats', items: [{ v: 'minutes', l: 'per full pass, down from days' }] },
         ],
       },
       {
@@ -348,11 +347,11 @@ export const leadership: Entry[] = [
       { v: 'Worlds', l: 'VEX World Championship' },
       { v: '~60', l: 'awards for the program' },
       { v: '20', l: 'competitors led' },
-      { v: '#20', l: 'international skills rank' },
+      { v: '7×', l: 'tournament champion' },
     ],
     intro: [
       'VEX 675 was my high school team at GSMST. As team leader and lead programmer, I ran a group of about 20 competitors, designed robots, and wrote the autonomous code: the PID controller, odometry and path following that let our robot score on its own in the autonomous period and the skills challenge.',
-      'We qualified for and competed at the **VEX World Championship**, and our code-based skills runs ranked **20th internationally**. The program as a whole won nearly 60 awards, including two at the international level.',
+      'We qualified for and competed at the **VEX World Championship**. The program as a whole won nearly 60 awards, including two at the international level.',
     ],
     overview: [
       { t: 'gallery', items: [{ src: 'img/renders/odometry.jpg', caption: 'Simulation of the odometry + pure pursuit stack I wrote for 675.' }, { src: 'img/renders/pid.jpg', caption: 'Why tuning matters: simulated step responses of the PID controller.' }] },
@@ -401,7 +400,6 @@ export const leadership: Entry[] = [
             head: ['Result', 'Detail'],
             rows: [
               ['VEX World Championship', 'Qualified and competed'],
-              ['International skills', '20th worldwide (code-based)'],
               ['Tournament Champion', '7× at regional events'],
               ['Skills Champion', '6×'],
               ['Judged awards', 'Design Award, Think Award, Create Award'],

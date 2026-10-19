@@ -24,8 +24,9 @@ export const projects: Entry[] = [
       { v: '197,706', l: 'archived past roles' },
     ],
     intro: [
-      'Applying for internships, I kept running into the same problems. Job boards show a posting but not the team behind it, pay is scattered, and good roles close before you see them. I built TeamsDatabase to fix that for myself: one place that lists every software role at Georgia companies, groups them by the team doing the hiring, shows pay when it is posted, and links every role back to the original posting.',
-      'It grew into a full platform: a scraping pipeline that reads Greenhouse, Lever, Ashby and Workday boards directly, ten bots that run around the clock to keep postings fresh, a Django site with company profiles and a job map, a local-only Apply Assistant that tailors resumes per job, job alerts with phone push notifications, and an iPhone app.',
+      'Atlanta has thousands of open roles, but only a handful are at companies I really want to work for, and every one of those gets a flood of applicants. The way to stand out is to show up prepared: knowing which teams are hiring, what they build, what tools they use, and when they usually post. That research is slow to do by hand, one company at a time, so I built a system to do it for every company in Georgia.',
+      'TeamsDatabase builds a profile for each company from its own job postings. A profile shows which teams are growing and what they work on, the technologies each team asks for so I know what to study, and the company’s hiring history, so I can tell when roles tend to open and apply early. Every fact links back to the original posting.',
+      'It is a personal tool, not a public product, and it grew into a full platform: a scraping pipeline that reads Greenhouse, Lever, Ashby and Workday boards directly, ten bots that run around the clock to keep postings fresh, a Django site with company profiles and a job map, a local-only Apply Assistant that tailors resumes per job, job alerts with phone push notifications, and an iPhone app.',
     ],
     overview: [
       { t: 'img', src: S('teams-jobs.png'), caption: 'The jobs page: 21,641 roles with level, work type, pay and recency filters. Every row links to the original posting.' },
@@ -85,6 +86,15 @@ class Fetcher:
     def _throttle(self, host: str) -> None: ...
     def _allowed(self, url: str) -> bool: ...   # robots.txt
     def get(self, url: str, use_cache: bool = True) -> str: ...`,
+          },
+          { t: 'h', text: 'The hardest part: Workday, and staying on the right side of the rules' },
+          {
+            t: 'p',
+            text: 'Workday is where most large Georgia employers post, and it was the hardest source to read reliably. Results come back in capped pages, so a company with hundreds of openings has to be walked page by page without missing or double-counting roles. Pushing too fast gets requests throttled or blocked, so the Workday bot runs on its own slower schedule, backs off when the server pushes back, and resumes where it left off instead of starting over.',
+          },
+          {
+            t: 'p',
+            text: 'LinkedIn was hard for a different reason. Its terms of service do not allow scraping, and I did not want a project about preparing for employers to be built on data I was not allowed to take. So TeamsDatabase **only reads sources that are meant to be read**: public applicant-tracking APIs, schema.org markup that companies publish for search engines, and public filings like SEC EDGAR. That rule cost coverage, but every record in the database is one I can defend.',
           },
           { t: 'h', text: 'Normalization' },
           {
@@ -238,7 +248,7 @@ class Fetcher:
     category: 'Robotics & CAD',
     year: '2026',
     role: 'Solo',
-    status: 'Prototype',
+    status: 'Prototype · verified in simulation, not yet printed',
     stack: ['Python', 'NumPy', 'trimesh', 'shapely', 'Three.js', 'pywebview', 'G-code', 'OrcaSlicer (C++)'],
     cover: S('cs5x-tbracket.png'),
     featured: true,
@@ -246,12 +256,13 @@ class Fetcher:
     metrics: [
       { v: '5', l: 'axes: X Y Z + B tilt + C rotate' },
       { v: '4', l: 'slicing strategies' },
-      { v: '3.9K', l: 'lines of Python' },
+      { v: '3.5K', l: 'lines of Python, 20 automated tests' },
       { v: '0', l: 'unreachable points on the demo parts' },
     ],
     intro: [
       'Normal 3D printers stack flat layers, so overhangs need support material and parts are weak between layers. A 5-axis printer can tilt and rotate the part, printing a sideways arm as if it were vertical, or printing in cone-shaped layers so overhangs need no support. The hard part is the software: existing slicers assume flat layers.',
-      'CustomSlicer 5X is my answer. It sits inside my fork of OrcaSlicer (`fiveaxis/`). It splits a part into chunks or reshapes the layers, slices them with a planar engine, maps the paths back, then runs a 5-axis post-processor that solves inverse kinematics for the specific machine and writes G-code.',
+      'I wanted to print multi-axis parts on my own printer, and the slicers I could find either did not support multi-axis at all or only worked for one specific machine. So I set out to build one that works for **any** printer: you describe which rotation axes your machine has and where they sit, and the slicer works out the rest.',
+      'CustomSlicer 5X is the result. It sits inside my fork of OrcaSlicer (`fiveaxis/`). It splits a part into chunks or reshapes the layers, slices them with a planar engine, maps the paths back, then runs a 5-axis post-processor that solves inverse kinematics for the specific machine and writes G-code.',
     ],
     overview: [
       {
@@ -275,6 +286,32 @@ class Fetcher:
     ],
     pages: [
       {
+        slug: 'hard-problems',
+        title: 'The two hard problems',
+        summary: 'Why non-planar layers and inverse kinematics took most of the work, and where the project stands today.',
+        blocks: [
+          { t: 'h', text: 'Non-planar layers' },
+          {
+            t: 'p',
+            text: 'Every mature slicing engine assumes flat layers, and rewriting one was out of scope. Instead of fighting that, the conical strategy **reshapes the part so flat slicing does the right thing**: it shears the mesh, lets a proven planar engine slice it, then shears every toolpath point back so the flat layers become cones. The catch is that a cone layer is thinner than it looks when measured along its surface, so extrusion has to be rescaled point by point, or walls come out under-filled.',
+          },
+          { t: 'h', text: 'Inverse kinematics for any machine' },
+          {
+            t: 'p',
+            text: 'Turning a nozzle position and angle into motor commands is easy for one known printer and hard in general. A rotary axis usually has two valid solutions for each point, and picking the wrong one between neighbouring points makes the part spin halfway around mid-print. Near vertical, the rotation angle becomes undefined (a singularity) and can jump wildly. The solver keeps every move on the solution closest to the last one, unwraps rotary axes so they never take the long way around, flags singular points, and blends the tool toward vertical near the axis so the machine never has to flip.',
+          },
+          {
+            t: 'p',
+            text: 'Describing machines with the product-of-exponentials model from robot arms is what made this general: a new printer is a list of axes, not new code.',
+          },
+          { t: 'h', text: 'Where it stands' },
+          {
+            t: 'note',
+            text: 'Everything so far is **verified in simulation**: the built-in machine simulator and validation checks report axis limits, reach, collisions, singular points and orientation error for every job. The next step is real prints on my own printer, and the results will go here.',
+          },
+        ],
+      },
+      {
         slug: 'kinematics',
         title: 'Generic machine kinematics',
         summary: 'Any multi-axis printer described as two kinematic chains, using the product-of-exponentials model from robotics.',
@@ -294,7 +331,7 @@ class Fetcher:
       {
         slug: 'strategies',
         title: 'Slicing strategies',
-        summary: 'Planar, multi-directional 3+2, conical non-planar, and imported toolpaths.',
+        summary: 'Planar, multi-directional 3+2, conical non-planar, and imported toolpaths from other slicers or custom JSON/CSV.',
         blocks: [
           {
             t: 'table',
@@ -304,6 +341,7 @@ class Fetcher:
               ['Multi-directional 3+2', 'Cut the mesh with planes, print each chunk in its own orientation', 'Sideways arms, bridges, T-brackets'],
               ['Conical non-planar', 'Shear the mesh, slice flat, shear the paths back into cones', 'Outward or inward overhangs without support'],
               ['Import toolpath', 'Read G-code from Bambu/Orca, Prusa or Cura', 'Reuse an existing slicer’s output'],
+              ['Waypoints', 'Load multi-axis paths with tool normals from JSON or CSV', 'Paths generated by my own scripts or other tools'],
             ],
           },
           { t: 'h', text: 'Conical slicing' },
@@ -407,7 +445,7 @@ Extrusion is scaled for the thinner layer measured along the cone normal."""`,
     category: 'Data & Research',
     year: '2026',
     role: 'Solo',
-    status: 'Research (paper money only)',
+    status: 'Learning project · paper money only, never real money',
     stack: ['Python', 'pandas', 'NumPy', 'PySide6', 'pyqtgraph', 'yfinance', 'Alpaca data API', 'SEC EDGAR'],
     cover: S('quant-dashboard.png'),
     featured: true,
@@ -421,6 +459,7 @@ Extrusion is scaled for the thinner layer measured along the cone normal."""`,
     intro: [
       'QuantTrader started with a question: **do large investors and algorithms leave recurring statistical patterns when they trade, and can those patterns predict price moves?** Public data never names who traded, but it might show the shape of their activity: unusual volume with little price movement, persistent buying pressure, repeated execution sizes.',
       'The project is built to answer that honestly rather than to find a strategy that looks good. Every result is out-of-sample, every strategy is compared to buy-and-hold and to random “monkey” traders, statistics are corrected for the number of strategies tried, and the network layer is physically unable to place an order.',
+      'To be clear about what this is: a project I built to learn how quantitative research is done properly, and because I enjoy it. **It has not found a real edge, and it has never traded real money.** The value is in the methods: building a research setup that makes it hard to fool yourself.',
     ],
     overview: [
       { t: 'img', src: S('quant-league.png'), caption: 'Strategy league: every algorithm trades paper money daily with frozen rules, compared against SPY and random baselines.' },
@@ -436,6 +475,23 @@ Extrusion is scaled for the thinner layer measured along the cone normal."""`,
       },
     ],
     pages: [
+      {
+        slug: 'lessons',
+        title: 'What made it hard',
+        summary: 'The four ways a trading backtest lies to you, and what I built to catch each one.',
+        blocks: [
+          {
+            t: 'cards',
+            items: [
+              { title: 'Lookahead bias', body: 'The easiest mistake is letting a backtest use information that did not exist yet, such as a filing dated by its quarter instead of the day it was actually published. Every dataset is aligned to when it became public, and signals only use data from before the bar they trade on.' },
+              { title: 'Overfitting', body: 'Try enough strategies and one will look brilliant by luck. Walk-forward testing keeps every result out-of-sample, random “monkey” traders show what luck looks like, and the deflated Sharpe ratio discounts results for how many strategies were tried.' },
+              { title: 'Data quality', body: 'Free data has gaps, split errors, delisted tickers and late filings. A lot of the code is cleaning and checking data before any strategy sees it, because a bad price looks exactly like a great trade.' },
+              { title: 'Running it live', body: 'The paper league only means something if it runs every day with rules frozen in advance. Keeping collection, scoring and the league reliable day after day was its own engineering problem.' },
+            ],
+          },
+          { t: 'note', text: 'The result so far is the honest one: **no edge that survives these checks**. That is the expected outcome for a student project with public data, and the reason the checks exist.' },
+        ],
+      },
       {
         slug: 'thesis',
         title: 'Research thesis',
@@ -835,14 +891,13 @@ refused anyway, so no order can be placed through this project."""`,
     slug: 'legacy-refactoring-cli',
     cover: 'img/photos/adtran-campus.jpg',
     title: 'Legacy Code Modernization CLI',
-    tagline: 'An automated refactoring tool that modernized 50,000+ lines of legacy code at Adtran and became the standard tool for other teams.',
+    tagline: 'An automated refactoring tool that modernized a legacy codebase at Adtran and became the standard tool for other teams.',
     category: 'Developer Tools',
     year: '2026',
     role: 'Adtran internship',
     stack: ['Python', 'CLI', 'Scripting', 'Git', 'Gerrit'],
     viz: 'cli',
     metrics: [
-      { v: '50K+', l: 'lines modernized' },
       { v: 'days → min', l: 'cleanup time' },
     ],
     intro: [

@@ -7,7 +7,7 @@ import { projects } from '../data/projects';
 import { work, leadership } from '../data/experience';
 import { courses } from '../data/coursework';
 import { skillGroups } from '../data/skills';
-import { md, url, hasFile, libraryPhotos } from '../lib';
+import { md, url, hasFile, libraryPhotos, creditFor } from '../lib';
 
 const featured = projects.filter((p) => p.featured).slice(0, 6);
 const photo = hasFile(profile.photo);
@@ -16,8 +16,8 @@ const done = courses.filter((c) => c.status === 'done').length;
 const skillCount = skillGroups.reduce((n, g) => n + g.items.length, 0);
 const guide = [
   { href: 'projects/', title: 'Projects', n: `${projects.length} projects`, text: 'Full-stack platforms, robotics, AI agents and research tools. Each one reads like its own documentation.' },
-  { href: 'experience/', title: 'Experience', n: `${work.length + leadership.length} roles`, text: 'Georgia Tech, my Adtran internship, teaching, and leadership on VEX 675, FRC 3318 and IEEE.' },
-  { href: 'coursework/', title: 'Coursework', n: `${done} courses done`, text: 'My Computer Engineering degree as an interactive skill tree, with what I learned in each course.' },
+  { href: 'experience/', title: 'Experience', n: `${work.length + leadership.length} roles`, text: 'My Adtran internship, teaching, and leadership on VEX 675, FRC 3318 and IEEE.' },
+  { href: 'georgia-tech/#coursework', title: 'Coursework', n: `${done} courses done`, text: 'My Computer Engineering degree as an interactive skill tree, with what I learned in each course.' },
   { href: 'skills/', title: 'Skills', n: `${skillCount} skills`, text: 'Languages, robotics, infrastructure and CAD. Click any skill to see where I’ve used it.' },
   { href: 'resume/', title: 'Resume', n: 'PDF + contact', text: 'My one-page resume, plus every way to reach me.' },
 ];
@@ -31,7 +31,7 @@ const guide = [
       </div>
       <div>
         <span class="label">Software Engineer · Georgia Tech Computer Engineering ’28</span>
-        <h1>Hi, I’m Chase.</h1>
+        <h1>Hi, I’m Chase</h1>
         <p class="lede">
           I build software that has to work in the real world, from robot autonomy and embedded control to data
           platforms, developer tooling and AI agents.
@@ -52,19 +52,22 @@ const guide = [
     </div>
   </section>
 
-  <section class="section container about">
-    <div>
-      <span class="label">About me</span>
-      <h2>Background</h2>
-    </div>
-    <div class="story">
-      {intro.map((p) => <p set:html={md(p)} />)}
-      <div class="now card">
-        <div><span class="label">Now</span><b>Computer Engineering at Georgia Tech</b><span class="muted">{education.threads.map((t) => t.name).join(' · ')}</span></div>
-        <div><span class="label">Recently</span><b>Software Engineering Intern, Adtran</b><span class="muted">Summer 2026</span></div>
-        <div><span class="label">Looking for</span><b>Summer 2027 internships</b><span class="muted">Software, embedded, robotics</span></div>
+  <section class="section container">
+    <a href={url('georgia-tech/')} class="card gt">
+      <figure class="gt-img">
+        <img src={url(education.image)} alt="Tech Tower at Georgia Tech" loading="lazy" />
+        <figcaption>{creditFor(education.image)}</figcaption>
+      </figure>
+      <div class="gt-body">
+        <span class="label">Education · {education.grad}</span>
+        <h2>{education.school}</h2>
+        <p class="deg">{education.degree} · {education.place}</p>
+        <ul>
+          {education.threads.map((t) => <li><b>{t.name}</b><span class="muted">{t.note}</span></li>)}
+        </ul>
+        <span class="arrow">More about Georgia Tech →</span>
       </div>
-    </div>
+    </a>
   </section>
 
   <section class="section container">
@@ -140,7 +143,8 @@ const guide = [
     height: 200px;
     border-radius: 50%;
     overflow: hidden;
-    background: linear-gradient(135deg, var(--accent), #6f8cff);
+    background: var(--surface);
+    border: 1px solid var(--accent);
     display: grid;
     place-items: center;
     box-shadow: 0 0 0 6px var(--bg), 0 0 0 7px var(--border);
@@ -153,7 +157,9 @@ const guide = [
   .portrait span {
     font-family: var(--serif);
     font-size: 4rem;
-    color: #fff;
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    color: var(--accent);
   }
   .hero h1 {
     font-size: clamp(2.6rem, 5.5vw, 4rem);
@@ -188,7 +194,8 @@ const guide = [
   }
   .stats b {
     font-family: var(--serif);
-    font-weight: 500;
+    font-weight: 600;
+    letter-spacing: -0.03em;
     font-size: 2.2rem;
     line-height: 1;
     color: var(--accent);
@@ -201,6 +208,57 @@ const guide = [
     display: grid;
     grid-template-columns: 240px 1fr;
     gap: 40px;
+  }
+  .gt {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+    overflow: hidden;
+  }
+  .gt-img {
+    position: relative;
+    min-height: 320px;
+  }
+  .gt-img img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .gt-img figcaption {
+    position: absolute;
+    bottom: 8px;
+    left: 10px;
+    margin: 0;
+    font-size: 0.68rem;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+  }
+  .gt-body {
+    padding: 32px 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .deg {
+    margin: 0;
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .gt-body ul {
+    list-style: none;
+    margin: 6px 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+  }
+  .gt-body li {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.94rem;
+  }
+  .gt-body .arrow {
+    margin-top: auto;
   }
   .story p {
     font-size: 1.06rem;
@@ -304,7 +362,7 @@ const guide = [
       width: 140px;
       height: 140px;
     }
-    .about,
+    .gt,
     .sim-wrap,
     .now {
       grid-template-columns: 1fr;

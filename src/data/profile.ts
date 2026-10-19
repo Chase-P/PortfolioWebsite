@@ -17,14 +17,14 @@ export const profile = {
 export const intro = [
   'I’m a Computer Engineering student at Georgia Tech who likes building things that have to work outside a slide deck: robots that find themselves on a competition field, scrapers that keep 21,000 job postings fresh every day, and AI agents that run unattended on my own GPU.',
   'I started programming robots in 2020 and haven’t stopped. Six years of VEX, FRC, VEXU and combat robotics taught me the whole stack: CAD and 3D-printed parts, wiring and soldering, embedded C++, PID loops, sensor fusion, and the autonomous routines that tie it all together. Along the way, teams I was on won 60+ awards, competed at the VEX World Championship, and won a state championship in FRC in our rookie year.',
-  'This summer I worked as a software engineering intern at Adtran, where I built a refactoring CLI that modernized 50,000+ lines of legacy code and became the standard tool for other teams, and I re-architected a Jenkins build pipeline across eight optical networking modules. Outside of work I build full-stack platforms like TeamsDatabase, research tools like QuantTrader, and a 5-axis 3D-printing slicer.',
+  'This summer I worked as a software engineering intern at Adtran, where I built a refactoring CLI that modernized a legacy codebase and became the standard tool for other teams, and I re-architected a Jenkins build pipeline across eight optical networking modules. Outside of work I build full-stack platforms like TeamsDatabase, research tools like QuantTrader, and a 5-axis 3D-printing slicer.',
 ];
 
 export const highlights = [
   { v: '60+', l: 'robotics awards across VEX, FRC and VEXU' },
-  { v: '50K+', l: 'lines of legacy code modernized by my CLI at Adtran' },
+  { v: '7×', l: 'VEX tournament champion at regional events' },
   { v: '21K+', l: 'open roles tracked by TeamsDatabase' },
-  { v: '#20', l: 'international robotics skills ranking (code-based)' },
+  { v: '30+', l: 'students taught to program autonomous robots at Georgia Tech' },
 ];
 
 export const timeline = [
@@ -60,7 +60,6 @@ export const awards = [
     items: [
       { name: 'Create Award', note: 'Recognizes creative engineering design at the international level.' },
       { name: 'Innovate Award', note: 'Novel engineering solution, won with OWL Robotics.' },
-      { name: '20th International Skills Rank', note: 'Code-based autonomous skills, ranked worldwide.' },
       { name: 'VEX World Championship', note: 'Competed with GSMST VEX 675.' },
     ],
   },

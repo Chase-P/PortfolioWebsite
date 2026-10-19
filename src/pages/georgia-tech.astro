@@ -1,0 +1,107 @@
+---
+import Base from '../layouts/Base.astro';
+import { education } from '../data/profile';
+import { courses } from '../data/coursework';
+import CourseTree from '../components/CourseTree.astro';
+import { url, creditFor } from '../lib';
+
+const done = courses.filter((c) => c.status === 'done').length;
+---
+
+<Base title="Georgia Tech" description={`${education.degree} at ${education.school}.`}>
+  <div class="container">
+    <header class="page-head">
+      <div class="crumbs"><a href={url('')}>Home</a><span>/</span><span>Georgia Tech</span></div>
+      <span class="label">Education · {education.grad}</span>
+      <h1>{education.school}</h1>
+      <p class="lede">{education.degree} · {education.place}</p>
+    </header>
+
+    <section class="edu">
+      <figure class="edu-img">
+        <img src={url(education.image)} alt="Tech Tower at Georgia Tech" />
+        <figcaption>{creditFor(education.image)}</figcaption>
+      </figure>
+      <div class="edu-body">
+        <div>
+          <span class="label">Threads</span>
+          <div class="threads">
+            {education.threads.map((t) => (
+              <div class="card"><b>{t.name}</b><span class="muted">{t.note}</span></div>
+            ))}
+          </div>
+        </div>
+        <div>
+          <span class="label">Activities</span>
+          <div class="tags">{education.activities.map((a) => <span class="tag">{a}</span>)}</div>
+        </div>
+        <div>
+          <span class="label">Before Tech</span>
+          <p class="prior"><b>{education.prior.school}</b><br /><span class="muted">{education.prior.note}</span></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="coursework" class="section">
+      <div class="section-head"><h2>Coursework</h2><span class="muted">{done} courses done</span></div>
+      <p class="muted intro">My degree as a skill tree. Click any course to see what I learned in it and where I’ve used it since.</p>
+      <CourseTree />
+    </section>
+  </div>
+</Base>
+
+<style>
+  .edu {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 40px;
+    align-items: start;
+  }
+  .edu-img img {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+  .edu-body {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+  .edu-body .label {
+    display: block;
+    margin-bottom: 10px;
+  }
+  .threads {
+    display: grid;
+    gap: 10px;
+  }
+  .threads .card {
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .threads .muted {
+    font-size: 0.9rem;
+  }
+  .prior {
+    margin: 0;
+  }
+  .intro {
+    max-width: 62ch;
+    margin-bottom: 24px;
+  }
+  .btn {
+    align-self: flex-start;
+  }
+  @media (max-width: 860px) {
+    .edu {
+      grid-template-columns: 1fr;
+    }
+    .edu-img img {
+      aspect-ratio: 16 / 10;
+    }
+  }
+</style>

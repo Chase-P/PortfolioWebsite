@@ -1,43 +1,21 @@
 ---
 import Base from '../../layouts/Base.astro';
 import ProjectVisual from '../../components/ProjectVisual.astro';
-import { education } from '../../data/profile';
 import { work, leadership } from '../../data/experience';
-import { url, creditFor } from '../../lib';
+import { url } from '../../lib';
 
 ---
 
-<Base title="Experience" description="Education, work experience and leadership.">
+<Base title="Experience" description="Work experience and leadership.">
   <div class="container">
     <header class="page-head">
-      <span class="label">Education · Work · Leadership</span>
+      <span class="label">Work · Leadership</span>
       <h1>Experience</h1>
       <p class="lede">
-        Where I study, where I’ve worked, and the teams I’ve led. Every role opens into a full page with the details,
+        Where I’ve worked and the teams I’ve led. Every role opens into a full page with the details,
         photos and what I built.
       </p>
     </header>
-
-    <!-- Education -->
-    <section class="edu card">
-      <div class="edu-img">
-        <img src={url(education.image)} alt="Georgia Tech campus" />
-        <span class="credit">{creditFor(education.image)}</span>
-      </div>
-      <div class="edu-body">
-        <span class="label">Education · {education.grad}</span>
-        <h2>{education.school}</h2>
-        <p class="deg">{education.degree} · {education.place}</p>
-        <div class="threads">
-          {education.threads.map((t) => (
-            <div><b>{t.name}</b><span class="muted">{t.note}</span></div>
-          ))}
-        </div>
-        <div class="tags">{education.activities.map((a) => <span class="tag">{a}</span>)}</div>
-        <p class="prior muted"><b>Before Tech:</b> {education.prior.school}. {education.prior.note}</p>
-        <a class="more" href={url('coursework/')}>See my coursework skill tree →</a>
-      </div>
-    </section>
 
     <!-- Work -->
     <section class="block">
@@ -140,7 +118,7 @@ import { url, creditFor } from '../../lib';
     text-decoration: none;
     font-weight: 500;
   }
-  .block {
+  .block + .block {
     margin-top: 56px;
   }
   .list {
