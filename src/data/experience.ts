@@ -252,7 +252,7 @@ export const leadership: Entry[] = [
   {
     slug: 'frc-3318',
     title: 'FRC 3318 RoboDragons',
-    tagline: 'Made the GSMST FRC team, and we won the Georgia state championship and qualified for the FIRST World Championship. I worked across software, electrical and CAD, and helped secure a $6,000 NASA grant.',
+    tagline: 'Brought GSMST’s FRC team back after it had disbanded years earlier. In our rookie year we won the Georgia state championship and qualified for the FIRST World Championship. I worked across software, electrical and CAD, and helped win a $6,000 NASA grant.',
     category: 'FIRST Robotics Competition',
     year: '2023 – 2024',
     role: 'Team member → Captain · Lawrenceville, GA',
@@ -261,13 +261,14 @@ export const leadership: Entry[] = [
     featured: true,
     links: [{ label: 'Team 3318 on The Blue Alliance', href: 'https://www.thebluealliance.com/team/3318' }],
     metrics: [
-      { v: 'State', l: 'champions' },
+      { v: 'State', l: 'champions in our rookie year' },
       { v: 'Worlds', l: 'qualified' },
       { v: '$6,000', l: 'NASA grant' },
       { v: '120 lb', l: 'robots' },
     ],
     intro: [
-      'FIRST Robotics Competition is the big leagues of high school robotics: 120-pound robots, alliances of three teams, and roughly six weeks to design and build a machine for a brand-new game. I joined FRC 3318, the RoboDragons at GSMST in Lawrenceville, and we won the Georgia state championship and qualified for the FIRST World Championship.',
+      'FIRST Robotics Competition is the big leagues of high school robotics: 120-pound robots, alliances of three teams, and roughly six weeks to design and build a machine for a brand-new game. FRC 3318, the RoboDragons at GSMST in Lawrenceville, had disbanded years before I got there, so we restarted it with no current robot, no returning members, and no institutional knowledge.',
+      'That first season was effectively a **rookie year**, and we won the **Georgia state championship** and qualified for the **FIRST World Championship**.',
       'I worked across the robot: software, electrical and CAD. I also took on the organizational side, building the training and recruiting pipeline and helping write the proposal that won a **$6,000 NASA grant**.',
     ],
     overview: [
@@ -283,18 +284,19 @@ export const leadership: Entry[] = [
       {
         slug: 'season',
         title: 'The season',
-        summary: 'From kickoff to state champions and Worlds.',
+        summary: 'From a disbanded team to rookie-year state champions and Worlds.',
         blocks: [
           {
             t: 'steps',
             items: [
-              { title: 'Kickoff & strategy', body: 'The game is revealed in January. We broke the rules down into scoring opportunities and chose a robot concept that fit our build capacity.' },
+              { title: 'Restarting the team', body: 'The program had been dormant for years, so the first job was rebuilding it: recruiting members, finding mentors and space, and relearning the FRC control system from scratch.' },
+              { title: 'Kickoff & strategy', body: 'The game is revealed in January. We broke the rules down into scoring opportunities and chose a robot concept a rookie team could actually build well.' },
               { title: 'Design & build', body: 'CAD, fabrication and wiring under a hard deadline: a drivetrain, a game-piece intake, and a shooter-style scoring mechanism.' },
               { title: 'Programming', body: 'Teleop controls and autonomous routines, then hours of driver practice to tune everything.' },
-              { title: 'Competition', body: 'District and state events, then the Georgia state championship win and World Championship qualification.' },
+              { title: 'Competition', body: 'District events, then the Georgia state championship win in our rookie year and qualification for the FIRST World Championship.' },
             ],
           },
-          { t: 'img', src: P('frc-crescendo.jpg') },
+          { t: 'img', src: P('frc-houston-2024.jpg'), caption: 'The FIRST Championship in Houston, 2024 (Crescendo), the level our rookie season qualified for.' },
         ],
       },
       {
@@ -328,7 +330,7 @@ export const leadership: Entry[] = [
               'Managed logistics, budgeting and sponsor relationships.',
             ],
           },
-          { t: 'note', text: 'In May 2024, the Gwinnett County Board of Education recognized the team with a Certificate of Recognition for its state performance.' },
+          { t: 'note', text: 'In May 2024, the Gwinnett County Board of Education recognized the team with a Certificate of Recognition for its rookie-year state performance.' },
         ],
       },
     ],
@@ -341,7 +343,7 @@ export const leadership: Entry[] = [
     year: '2022 – 2024',
     role: 'Team Leader · Lead Programmer · Mentor',
     stack: ['C++', 'PROS', 'PID', 'Odometry', 'Pure pursuit', 'Fusion 360', 'Onshape'],
-    cover: P('vex-robot.jpg'),
+    cover: 'img/renders/vex675.jpg',
     featured: true,
     metrics: [
       { v: 'Worlds', l: 'VEX World Championship' },
@@ -354,7 +356,7 @@ export const leadership: Entry[] = [
       'We qualified for and competed at the **VEX World Championship**, and our code-based skills runs ranked **20th internationally**. The program as a whole won nearly 60 awards, including two at the international level.',
     ],
     overview: [
-      { t: 'gallery', items: [{ src: P('vex-build.jpg'), caption: 'VEX robots are built from aluminum, steel and custom parts around the V5 Brain.' }, { src: P('vex-controller.jpg') }] },
+      { t: 'gallery', items: [{ src: 'img/renders/odometry.jpg', caption: 'Simulation of the odometry + pure pursuit stack I wrote for 675.' }, { src: 'img/renders/pid.jpg', caption: 'Why tuning matters: simulated step responses of the PID controller.' }] },
     ],
     pages: [
       {
@@ -456,7 +458,7 @@ export const leadership: Entry[] = [
     year: '2024 – 2025',
     role: 'Technical lead',
     stack: ['C++', 'PID', 'Odometry', 'Monte Carlo localization'],
-    cover: P('vex-controller.jpg'),
+    cover: 'img/renders/owl.jpg',
     intro: ['As a first-year student, I helped lead OWL Robotics to competitions, teaching advanced building and programming techniques that contributed to the team’s **Innovate Award** for engineering design.'],
     pages: [
       {
@@ -477,7 +479,7 @@ export const leadership: Entry[] = [
     year: '2023 – 2025',
     role: 'Volunteer mentor',
     stack: ['Teaching', 'Curriculum', 'CAD', 'C++'],
-    cover: P('vex-build.jpg'),
+    cover: 'img/renders/mentor.jpg',
     metrics: [{ v: '6', l: 'schools' }],
     intro: ['I visited teams at **Jones, Seckinger, GSMST, Westminster, Brookwood and South Forsyth** to teach advanced robotics topics, and helped design a simple, affordable community robot so newer teams could get started.'],
     pages: [

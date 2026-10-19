@@ -713,6 +713,7 @@ refused anyway, so no order can be placed through this project."""`,
   // ───────────────────────────────────────────── Multi-agent AI
   {
     slug: 'multi-agent-ai-platform',
+    cover: 'img/renders/agents.jpg',
     title: 'Local Multi-Agent AI Platform',
     tagline:
       'Hybrid agent infrastructure: frontier models plan, a 30B local model on my GPU does the bulk coding, and a hardened harness keeps local agents working unattended for hours.',
@@ -872,7 +873,7 @@ refused anyway, so no order can be placed through this project."""`,
   // ───────────────────────────────────────────── Pure pursuit
   {
     slug: 'odometry-pure-pursuit',
-    cover: 'img/photos/vex-build.jpg',
+    cover: 'img/renders/odometry.jpg',
     title: 'Odometry & Pure Pursuit',
     tagline: 'Custom 3D-printed tracking wheels and a pure pursuit controller for smooth, chained autonomous movement.',
     category: 'Robotics',
@@ -920,7 +921,7 @@ refused anyway, so no order can be placed through this project."""`,
   // ───────────────────────────────────────────── PID
   {
     slug: 'pid-controller',
-    cover: 'img/photos/vex-robot.jpg',
+    cover: 'img/renders/pid.jpg',
     title: 'PID Motion Controller',
     tagline: 'Closed-loop control that cuts drivetrain drift, positional error and overshoot across competition fields.',
     category: 'Robotics',
@@ -955,7 +956,7 @@ refused anyway, so no order can be placed through this project."""`,
   // ───────────────────────────────────────────── Spatial perception
   {
     slug: 'spatial-perception',
-    cover: 'img/photos/vex-controller.jpg',
+    cover: 'img/renders/fusion.jpg',
     title: 'AI Spatial Perception',
     tagline: 'IMU and lidar fusion with Kalman filtering for drift-free robot localization during long autonomous routines.',
     category: 'Robotics',

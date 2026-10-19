@@ -16,7 +16,7 @@ export const profile = {
 // Home page: who I am, in my own voice.
 export const intro = [
   'I’m a Computer Engineering student at Georgia Tech who likes building things that have to work outside a slide deck: robots that find themselves on a competition field, scrapers that keep 21,000 job postings fresh every day, and AI agents that run unattended on my own GPU.',
-  'I started programming robots in 2020 and haven’t stopped. Six years of VEX, FRC, VEXU and combat robotics taught me the whole stack: CAD and 3D-printed parts, wiring and soldering, embedded C++, PID loops, sensor fusion, and the autonomous routines that tie it all together. Along the way, teams I was on won 60+ awards, competed at the VEX World Championship, and won a state championship in FRC.',
+  'I started programming robots in 2020 and haven’t stopped. Six years of VEX, FRC, VEXU and combat robotics taught me the whole stack: CAD and 3D-printed parts, wiring and soldering, embedded C++, PID loops, sensor fusion, and the autonomous routines that tie it all together. Along the way, teams I was on won 60+ awards, competed at the VEX World Championship, and won a state championship in FRC in our rookie year.',
   'This summer I worked as a software engineering intern at Adtran, where I built a refactoring CLI that modernized 50,000+ lines of legacy code and became the standard tool for other teams, and I re-architected a Jenkins build pipeline across eight optical networking modules. Outside of work I build full-stack platforms like TeamsDatabase, research tools like QuantTrader, and a 5-axis 3D-printing slicer.',
 ];
 
@@ -31,7 +31,7 @@ export const timeline = [
   { year: '2018', text: 'Started volunteering and got my first taste of building things with a soldering iron.' },
   { year: '2020', text: 'Started competitive robotics. First C++ autonomous routines.' },
   { year: '2022', text: 'Team leader for GSMST VEX 675. Built the PID and odometry code we used for years.' },
-  { year: '2023', text: 'Joined FRC 3318 RoboDragons. State champions and a World Championship qualifier.' },
+  { year: '2023', text: 'Brought back FRC 3318 RoboDragons after it had disbanded. Rookie-year state champions and a World Championship qualifier.' },
   { year: '2024', text: 'Graduated GSMST and started Computer Engineering at Georgia Tech.' },
   { year: '2025', text: 'IEEE officer leading robotics. Started the True Walker combat robot and the GT Sumo team.' },
   { year: '2026', text: 'Software engineering intern at Adtran. Built TeamsDatabase, QuantTrader and CustomSlicer 5X.' },
@@ -77,7 +77,7 @@ export const awards = [
   {
     tier: 'Recognition',
     items: [
-      { name: 'FRC Georgia State Champions', note: 'With FRC 3318 RoboDragons.' },
+      { name: 'FRC Georgia State Champions', note: 'FRC 3318 RoboDragons, in our rookie year.' },
       { name: 'Outstanding Computer Science Award', note: 'GSMST.' },
       { name: 'Certificate of Recognition', note: 'Gwinnett County Board of Education, May 2024.' },
       { name: '$6,000 NASA grant', note: 'Funding secured for the GSMST FRC program.' },
