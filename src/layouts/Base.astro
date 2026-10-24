@@ -12,6 +12,7 @@ interface Props {
 
 const { title, description = profile.tagline } = Astro.props;
 const fullTitle = title ? `${title} · ${profile.name}` : `${profile.fullName} · Software Engineer`;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
 ---
 
 <!doctype html>
@@ -24,6 +25,15 @@ const fullTitle = title ? `${title} · ${profile.name}` : `${profile.fullName} �
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={profile.name} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0e0e10" media="(prefers-color-scheme: dark)" />
+    <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href={url('favicon.svg')} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -39,8 +49,9 @@ const fullTitle = title ? `${title} · ${profile.name}` : `${profile.fullName} �
     </script>
   </head>
   <body>
+    <a class="skip-link" href="#main">Skip to content</a>
     <Nav />
-    <main>
+    <main id="main" tabindex="-1">
       <slot />
     </main>
     <Footer />
