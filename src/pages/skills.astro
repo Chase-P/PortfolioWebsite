@@ -21,7 +21,18 @@ const usesFor = (name: string, explicit: string[] = []): Use[] => {
     .filter(({ e }) => explicit.includes(e.slug) || (key.length > 1 && e.stack.some((t) => norm(t).includes(key) || key.includes(norm(t)) && norm(t).length > 2)))
     .map(({ e, base, kind }) => ({ title: e.title, href: url(`${base}/${e.slug}/`), tagline: e.tagline, cover: e.cover ? url(e.cover) : undefined, kind }));
 };
-const groups = skillGroups.map((g) => ({ ...g, items: g.items.map((s) => ({ ...s, uses: usesFor(s.name, s.projects) })) }));
+const slugify = (s: string) =>
+  s.toLowerCase().replace(/\+/g, 'p').replace(/#/g, 'sharp').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const groups = skillGroups.map((g) => ({
+  ...g,
+  items: g.items.map((s) => ({ ...s, id: `skill-${slugify(s.name)}`, uses: usesFor(s.name, s.projects) })),
+}));
+
+// Data for the skill search: each skill with the pages that use it, and each page once.
+const finderSkills = groups.flatMap((g) => g.items.filter((s) => s.uses.length).map((s) => ({ name: s.name, hrefs: s.uses.map((u) => u.href) })));
+const finderPages = Object.fromEntries(
+  entries.map(({ e, base, kind }) => [url(`${base}/${e.slug}/`), { title: e.title, kind, tagline: e.tagline }])
+);
 ---
 
 <Base title="Skills" description="Languages, robotics, infrastructure and CAD, each linked to where I used it.">
@@ -29,7 +40,25 @@ const groups = skillGroups.map((g) => ({ ...g, items: g.items.map((s) => ({ ...s
     <header class="page-head">
       <span class="label">Toolbox</span>
       <h1>Skills</h1>
-      <p class="lede">Click any skill to see the projects and roles where I’ve used it. Awards are at the bottom.</p>
+      <h2 class="finder-title">Looking for something specific?</h2>
+      <p class="lede">
+        Search my projects and experience by what you’re looking for. Add skills to narrow the results and find examples of how I’ve
+        used them.
+      </p>
+      <form class="finder" role="search" aria-label="Search projects and experience by skill">
+        <label for="finder-input" class="finder-label">Add a skill</label>
+        <div class="finder-row">
+          <input id="finder-input" list="finder-list" placeholder="e.g. Python" autocomplete="off" />
+          <button type="submit" class="btn primary">Add</button>
+          <button type="button" class="btn finder-reset" hidden>Clear all</button>
+        </div>
+        <datalist id="finder-list">{finderSkills.map((f) => <option value={f.name} />)}</datalist>
+        <ul class="chips" aria-label="Selected skills"></ul>
+        <p class="finder-status muted" aria-live="polite"></p>
+        <ul class="finder-results"></ul>
+      </form>
+      <script type="application/json" id="finder-data" set:html={JSON.stringify({ skills: finderSkills, pages: finderPages })} />
+      <p class="muted hint">Or browse below: click a skill, or its “View usage” link, to see where I’ve used it. Awards are at the bottom.</p>
       <div class="jump">
         {groups.map((g) => <a href={`#${g.group.replace(/\W+/g, '-').toLowerCase()}`}>{g.group}</a>)}
         <a href="#accolades" class="acc">Accolades</a>
@@ -45,17 +74,20 @@ const groups = skillGroups.map((g) => ({ ...g, items: g.items.map((s) => ({ ...s
           </div>
           <div class="skills">
             {g.items.map((s) => (
-              <button class="card skill" data-skill={s.name}>
-                <div class="top">
-                  {s.logo ? <span class="logo" style={`--src: url('${url(`img/logos/${s.logo}.svg`)}')`} /> : <span class="logo text">{initials(s.name)}</span>}
-                  <b>{s.name}</b>
-                  {s.uses.length > 0 && <span class="count">{s.uses.length}</span>}
-                </div>
-                {s.note && <span class="note">{s.note}</span>}
+              <div class="card skill" id={s.id}>
+                <button type="button" class="open" aria-haspopup="dialog">
+                  <span class="top">
+                    {s.logo ? <span class="logo" style={`--src: url('${url(`img/logos/${s.logo}.svg`)}')`} /> : <span class="logo text">{initials(s.name)}</span>}
+                    <b>{s.name}</b>
+                    {s.uses.length > 0 && <span class="count" title={`Used in ${s.uses.length} places`}>{s.uses.length}</span>}
+                  </span>
+                  {s.note && <span class="note">{s.note}</span>}
+                </button>
+                {s.uses.length > 0 && <a class="view" href={`#${s.id}`}>View usage</a>}
                 <template>
                   <div class="m-head">
                     {s.logo ? <span class="logo big" style={`--src: url('${url(`img/logos/${s.logo}.svg`)}')`} /> : <span class="logo text big">{initials(s.name)}</span>}
-                    <div><span class="label">{g.group}</span><h3>{s.name}</h3>{s.note && <p class="muted">{s.note}</p>}</div>
+                    <div><span class="label">{g.group}</span><h3 id="m-title">{s.name}</h3>{s.note && <p class="muted">{s.note}</p>}</div>
                   </div>
                   <span class="label">{s.uses.length ? `Used in ${s.uses.length} place${s.uses.length > 1 ? 's' : ''}` : 'Where I use it'}</span>
                   {s.uses.length ? (
@@ -75,7 +107,7 @@ const groups = skillGroups.map((g) => ({ ...g, items: g.items.map((s) => ({ ...s
                     <p class="muted">Used across coursework and day-to-day development. Ask me about it!</p>
                   )}
                 </template>
-              </button>
+              </div>
             ))}
           </div>
         </section>
@@ -100,25 +132,119 @@ const groups = skillGroups.map((g) => ({ ...g, items: g.items.map((s) => ({ ...s
     </section>
   </div>
 
-  <dialog id="skill-modal">
+  <dialog id="skill-modal" aria-labelledby="m-title">
     <button class="close" aria-label="Close">×</button>
     <div class="m-body"></div>
   </dialog>
 </Base>
 
 <script>
+  // ── Skill popup ──
   const dlg = document.getElementById('skill-modal') as HTMLDialogElement;
   const body = dlg.querySelector('.m-body')!;
-  document.querySelectorAll<HTMLButtonElement>('.skill').forEach((b) =>
-    b.addEventListener('click', () => {
-      body.innerHTML = '';
-      body.append((b.querySelector('template') as HTMLTemplateElement).content.cloneNode(true));
-      dlg.showModal();
-    })
-  );
+  let opener: HTMLElement | null = null;
+
+  const openSkill = (card: HTMLElement, from: HTMLElement | null) => {
+    body.innerHTML = '';
+    body.append((card.querySelector('template') as HTMLTemplateElement).content.cloneNode(true));
+    opener = from;
+    if (!dlg.open) dlg.showModal();
+  };
+
+  document.querySelectorAll<HTMLElement>('.skill').forEach((card) => {
+    card.querySelector('.open')!.addEventListener('click', (e) => openSkill(card, e.currentTarget as HTMLElement));
+    card.querySelector('.view')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      history.replaceState(null, '', `#${card.id}`);
+      openSkill(card, e.currentTarget as HTMLElement);
+    });
+  });
+
   dlg.querySelector('.close')!.addEventListener('click', () => dlg.close());
   dlg.addEventListener('click', (e) => {
     if (e.target === dlg) dlg.close();
+  });
+  dlg.addEventListener('close', () => {
+    if (location.hash.startsWith('#skill-')) history.replaceState(null, '', location.pathname + location.search);
+    opener?.focus();
+  });
+
+  // Deep link: skills/#skill-python opens that skill's popup.
+  const fromHash = () => {
+    const id = decodeURIComponent(location.hash.slice(1));
+    const card = id.startsWith('skill-') ? document.getElementById(id) : null;
+    if (card?.classList.contains('skill') && card.querySelector('.view')) openSkill(card, card.querySelector('.open'));
+  };
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
+
+  // ── Skill search ── Multiple skills use AND matching: a result must use every selected skill.
+  type Page = { title: string; kind: string; tagline: string };
+  const data = JSON.parse(document.getElementById('finder-data')!.textContent!) as {
+    skills: { name: string; hrefs: string[] }[];
+    pages: Record<string, Page>;
+  };
+  const form = document.querySelector<HTMLFormElement>('.finder')!;
+  const input = form.querySelector<HTMLInputElement>('#finder-input')!;
+  const chips = form.querySelector('.chips')!;
+  const status = form.querySelector('.finder-status')!;
+  const results = form.querySelector('.finder-results')!;
+  const reset = form.querySelector<HTMLButtonElement>('.finder-reset')!;
+  const selected: string[] = [];
+  const esc = (t: string) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+  const find = (q: string) => {
+    const k = q.trim().toLowerCase();
+    return data.skills.find((s) => s.name.toLowerCase() === k) ?? data.skills.find((s) => s.name.toLowerCase().startsWith(k));
+  };
+
+  const render = () => {
+    chips.innerHTML = selected
+      .map((n) => `<li><button type="button" data-n="${esc(n)}" aria-label="Remove ${esc(n)}">${esc(n)} <span aria-hidden="true">×</span></button></li>`)
+      .join('');
+    reset.hidden = selected.length === 0;
+    if (!selected.length) {
+      status.textContent = '';
+      results.innerHTML = '';
+      return;
+    }
+    const sets = selected.map((n) => new Set(data.skills.find((s) => s.name === n)!.hrefs));
+    const hrefs = [...sets[0]].filter((h) => sets.every((set) => set.has(h)));
+    const what = selected.length > 1 ? `using all of: ${selected.join(', ')}` : `using ${selected[0]}`;
+    status.textContent = hrefs.length
+      ? `${hrefs.length} result${hrefs.length === 1 ? '' : 's'} ${what}.`
+      : 'Nothing uses all of these together yet. Remove a skill to widen the search.';
+    results.innerHTML = hrefs
+      .map((h) => {
+        const p = data.pages[h];
+        return `<li><a href="${h}"><span class="label">${esc(p.kind)}</span><b>${esc(p.title)}</b><span class="muted">${esc(p.tagline)}</span></a></li>`;
+      })
+      .join('');
+  };
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const q = input.value.trim();
+    if (!q) return;
+    const s = find(q);
+    if (!s) {
+      status.textContent = `Nothing on the site lists “${q}” yet. Try one of the suggestions.`;
+      return;
+    }
+    if (!selected.includes(s.name)) selected.push(s.name);
+    input.value = '';
+    render();
+  });
+  chips.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-n]');
+    if (!b) return;
+    selected.splice(selected.indexOf(b.dataset.n!), 1);
+    render();
+    input.focus();
+  });
+  reset.addEventListener('click', () => {
+    selected.length = 0;
+    render();
+    input.focus();
   });
 </script>
 
@@ -162,19 +288,117 @@ const groups = skillGroups.map((g) => ({ ...g, items: g.items.map((s) => ({ ...s
     gap: 10px;
   }
   .skill {
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    transition: border-color 0.15s;
+  }
+  .skill:hover,
+  .skill:focus-within {
+    border-color: var(--accent);
+  }
+  .open {
     font: inherit;
     color: inherit;
     text-align: left;
-    padding: 12px 14px;
+    background: none;
+    border: 0;
+    padding: 0;
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 6px;
     cursor: pointer;
-    transition: border-color 0.15s, transform 0.15s;
   }
-  .skill:hover {
+  .view {
+    margin-top: auto;
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .view:hover {
+    color: var(--accent);
+  }
+  .finder-title {
+    font-size: 1.3rem;
+    margin: 20px 0 4px;
+  }
+  .hint {
+    font-size: 0.88rem;
+    margin-top: 18px;
+  }
+  .finder {
+    margin-top: 14px;
+    max-width: 720px;
+  }
+  .finder-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .finder-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .finder input {
+    flex: 1 1 220px;
+    font: inherit;
+    padding: 8px 12px;
+    min-height: 42px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+  }
+  .chips {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .chips :global(button) {
+    font: inherit;
+    font-size: 0.82rem;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--accent);
+    background: var(--accent-soft);
+    color: var(--text);
+    cursor: pointer;
+  }
+  .finder-status {
+    font-size: 0.88rem;
+    margin: 8px 0;
+  }
+  .finder-results {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 8px;
+  }
+  .finder-results :global(a) {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+  .finder-results :global(a:hover) {
     border-color: var(--accent);
-    transform: translateY(-2px);
+  }
+  .finder-results :global(.muted) {
+    font-size: 0.82rem;
   }
   .top {
     display: flex;

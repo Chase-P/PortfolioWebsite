@@ -20,6 +20,9 @@ const { entry: e, base } = Astro.props;
       <span>{e.year}</span>
     </div>
     <h3>{e.title}</h3>
+    {(e.status || e.role === 'Adtran internship') && (
+      <span class="status">{e.role === 'Adtran internship' ? 'Professional work · Adtran internship' : e.status}</span>
+    )}
     <p>{e.tagline}</p>
     <div class="foot">
       <div class="tags">{e.stack.slice(0, 3).map((t) => <span class="tag">{t}</span>)}</div>
@@ -76,6 +79,14 @@ const { entry: e, base } = Astro.props;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+  .status {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    border-left: 2px solid var(--accent);
+    padding-left: 8px;
+    line-height: 1.4;
   }
   .foot {
     margin-top: auto;

@@ -2,7 +2,7 @@ import type { Entry } from './types';
 
 const S = (f: string) => `img/shots/${f}`;
 
-export const projects: Entry[] = [
+const allProjects: Entry[] = [
   // ───────────────────────────────────────────── TeamsDatabase
   {
     slug: 'teamsdatabase',
@@ -895,6 +895,7 @@ refused anyway, so no order can be placed through this project."""`,
     category: 'Developer Tools',
     year: '2026',
     role: 'Adtran internship',
+    featured: true,
     stack: ['Python', 'CLI', 'Scripting', 'Git', 'Gerrit'],
     viz: 'cli',
     metrics: [
@@ -1421,5 +1422,24 @@ class Item(models.Model):
     pages: [],
   },
 ];
+
+// Display order for the portfolio. Anything not listed keeps its original order after these.
+const order = [
+  'multi-agent-ai-platform',
+  'legacy-refactoring-cli',
+  'teamsdatabase',
+  'quanttrader',
+  'pid-controller',
+  'odometry-pure-pursuit',
+  'spatial-perception',
+  'vexu-vision-system',
+  'customslicer-5x',
+  'true-walker',
+];
+const rank = (slug: string) => {
+  const i = order.indexOf(slug);
+  return i === -1 ? order.length : i;
+};
+export const projects: Entry[] = [...allProjects].sort((a, b) => rank(a.slug) - rank(b.slug));
 
 export const categories = ['All', ...Array.from(new Set(projects.map((p) => p.category)))];

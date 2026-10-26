@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import EntryCard from '../../components/EntryCard.astro';
+import Disclaimer from '../../components/Disclaimer.astro';
 import { projects, categories } from '../../data/projects';
 
 const pageCount = projects.reduce((n, p) => n + p.pages.length, 0);
@@ -11,15 +12,14 @@ const pageCount = projects.reduce((n, p) => n + p.pages.length, 0);
     <header class="page-head">
       <span class="label">{projects.length} projects · {pageCount} documented sections</span>
       <h1>Projects</h1>
-      <p class="lede">
-        Full-stack platforms, robot autonomy, AI agent infrastructure and quantitative research. Each project reads like its docs: an
-        overview and documented sections on its architecture and the hard problems.
-      </p>
     </header>
 
-    <div class="filters" role="tablist">
-      {categories.map((c, i) => <button class:list={{ on: i === 0 }} data-f={c}>{c}</button>)}
+    <Disclaimer />
+
+    <div class="filters" role="group" aria-label="Filter projects by category">
+      {categories.map((c, i) => <button type="button" class:list={{ on: i === 0 }} aria-pressed={i === 0 ? 'true' : 'false'} data-f={c}>{c}</button>)}
     </div>
+    <p class="count muted" aria-live="polite"></p>
 
     <div class="grid">
       {projects.map((p) => <EntryCard entry={p} base="projects" />)}
@@ -44,10 +44,19 @@ const pageCount = projects.reduce((n, p) => n + p.pages.length, 0);
     color: var(--muted);
     cursor: pointer;
   }
+  .filters button:hover {
+    color: var(--text);
+    border-color: var(--border-strong);
+  }
   .filters button.on {
     background: var(--text);
     color: var(--bg);
     border-color: var(--text);
+  }
+  .count {
+    margin: -12px 0 16px;
+    font-size: 0.85rem;
+    min-height: 1em;
   }
   .grid {
     display: grid;
@@ -58,12 +67,22 @@ const pageCount = projects.reduce((n, p) => n + p.pages.length, 0);
 
 <script>
   const buttons = document.querySelectorAll<HTMLButtonElement>('.filters button');
+  const count = document.querySelector('.count');
   const cards = document.querySelectorAll<HTMLElement>('.grid > a');
   buttons.forEach((b) =>
     b.addEventListener('click', () => {
-      buttons.forEach((x) => x.classList.toggle('on', x === b));
+      buttons.forEach((x) => {
+        x.classList.toggle('on', x === b);
+        x.setAttribute('aria-pressed', String(x === b));
+      });
       const f = b.dataset.f;
-      cards.forEach((c) => (c.style.display = f === 'All' || c.dataset.cat === f ? '' : 'none'));
+      let n = 0;
+      cards.forEach((c) => {
+        const show = f === 'All' || c.dataset.cat === f;
+        c.style.display = show ? '' : 'none';
+        if (show) n++;
+      });
+      if (count) count.textContent = f === 'All' ? '' : `${n} ${f} project${n === 1 ? '' : 's'}`;
     })
   );
 </script>

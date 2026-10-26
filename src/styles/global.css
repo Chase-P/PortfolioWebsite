@@ -13,6 +13,7 @@
   --ok-soft: #e4f4ec;
   --warn: #a05a00;
   --warn-soft: #fdf1df;
+  --danger: #c62828;
   --info: #8a7535;
   --info-soft: #f6f1e3;
   --shadow: none;
@@ -40,6 +41,7 @@
     --ok-soft: #13291f;
     --warn: #f0b660;
     --warn-soft: #2e2413;
+    --danger: #ff6b6b;
     --info: #c8b67a;
     --info-soft: #26221a;
     --shadow: none;
@@ -62,6 +64,7 @@
   --ok-soft: #13291f;
   --warn: #f0b660;
   --warn-soft: #2e2413;
+  --danger: #ff6b6b;
   --info: #c8b67a;
   --info-soft: #26221a;
   --shadow: none;

@@ -1,0 +1,233 @@
+/* TEMPORARY: alternate looks to compare. Pick one, then fold it into global.css and delete this file
+   and the look picker in Base.astro. `html:root[data-look]` outranks the light/dark token rules. */
+
+/* ───────────── Shared "less template" tweaks for the alternate looks ───────────── */
+html:root[data-look] .label {
+  font-family: var(--sans);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+html:root[data-look] .theme {
+  display: none;
+}
+
+/* ───────────── 1. Plain page: a hand-built personal site. Serif, underlined links, no boxes ───────────── */
+html:root[data-look='plain'] {
+  --bg: #fdfcf8;
+  --bg-2: #f4f2ec;
+  --surface: #fdfcf8;
+  --border: #e4e0d6;
+  --border-strong: #cfc9bb;
+  --text: #22201c;
+  --muted: #5f5b53;
+  --faint: #8e897f;
+  --accent: #1d4ed8;
+  --accent-soft: #e8eefc;
+  --info: #1d4ed8;
+  --info-soft: #e8eefc;
+  --shadow: none;
+  --radius: 0px;
+  --serif: 'Source Serif 4', Georgia, serif;
+  --sans: 'Source Serif 4', Georgia, serif;
+  --max: 980px;
+  color-scheme: light;
+}
+html:root[data-look='plain'] body {
+  font-size: 18px;
+}
+html:root[data-look='plain'] h1,
+html:root[data-look='plain'] h2 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+html:root[data-look='plain'] .card {
+  border: 0;
+  border-top: 1px solid var(--border-strong);
+  background: transparent;
+}
+html:root[data-look='plain'] a.card:hover {
+  border-top-color: var(--text);
+}
+html:root[data-look='plain'] main a:not(.btn):not(.card) {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+html:root[data-look='plain'] .btn {
+  border-radius: 0;
+  background: transparent;
+  border-color: var(--text);
+}
+html:root[data-look='plain'] .btn.primary {
+  background: var(--text);
+  color: var(--bg);
+}
+html:root[data-look='plain'] .tag {
+  border: 0;
+  background: none;
+  padding: 0 6px 0 0;
+  font-family: var(--sans);
+  font-style: italic;
+}
+html:root[data-look='plain'] .stats b,
+html:root[data-look='plain'] .y {
+  color: var(--text);
+  font-family: var(--serif);
+}
+html:root[data-look='plain'] .portrait {
+  background: var(--bg-2);
+  border: 1px solid var(--border-strong);
+}
+html:root[data-look='plain'] .portrait span {
+  color: var(--text);
+}
+
+/* ───────────── 2. Swiss: white, Helvetica, black rules, one red ───────────── */
+html:root[data-look='swiss'] {
+  --bg: #ffffff;
+  --bg-2: #f2f2f2;
+  --surface: #ffffff;
+  --border: #111111;
+  --border-strong: #111111;
+  --text: #111111;
+  --muted: #444444;
+  --faint: #777777;
+  --accent: #d40000;
+  --accent-soft: #fde8e8;
+  --info: #d40000;
+  --info-soft: #fde8e8;
+  --shadow: none;
+  --radius: 0px;
+  --serif: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  color-scheme: light;
+}
+html:root[data-look='swiss'] h1 {
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  font-size: clamp(3rem, 7vw, 5.6rem);
+  line-height: 0.95;
+}
+html:root[data-look='swiss'] h2 {
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+html:root[data-look='swiss'] .page-head,
+html:root[data-look='swiss'] .nav {
+  border-bottom: 3px solid #111;
+}
+html:root[data-look='swiss'] .btn {
+  border-radius: 0;
+  border: 2px solid #111;
+}
+html:root[data-look='swiss'] .btn.primary:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+html:root[data-look='swiss'] a.card:hover {
+  border-color: var(--accent);
+  box-shadow: inset 0 -4px 0 var(--accent);
+}
+html:root[data-look='swiss'] .tag {
+  border-radius: 0;
+  font-family: var(--sans);
+  background: none;
+  border-color: #111;
+  color: #111;
+}
+html:root[data-look='swiss'] .stats b,
+html:root[data-look='swiss'] .y {
+  font-family: var(--sans);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+html:root[data-look='swiss'] .portrait {
+  border-radius: 0;
+  background: var(--accent);
+  box-shadow: none;
+}
+html:root[data-look='swiss'] .portrait span {
+  color: #fff;
+  font-weight: 700;
+}
+
+/* ───────────── 3. Warm dark: charcoal instead of navy, plex sans, quiet gold ───────────── */
+html:root[data-look='warm'] {
+  --bg: #1b1a18;
+  --bg-2: #232220;
+  --surface: #222120;
+  --border: #33312d;
+  --border-strong: #4a4740;
+  --text: #ebe7df;
+  --muted: #a7a197;
+  --faint: #78736a;
+  --accent: #d9b36c;
+  --accent-soft: #2e2a20;
+  --info: #d9b36c;
+  --info-soft: #2e2a20;
+  --shadow: none;
+  --radius: 4px;
+  --serif: 'IBM Plex Sans', system-ui, sans-serif;
+  --sans: 'IBM Plex Sans', system-ui, sans-serif;
+  color-scheme: dark;
+}
+html:root[data-look='warm'] h1,
+html:root[data-look='warm'] h2 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+html:root[data-look='warm'] .card {
+  background: transparent;
+}
+html:root[data-look='warm'] .btn {
+  border-radius: 4px;
+}
+html:root[data-look='warm'] .btn.primary:hover {
+  color: #1b1a18;
+}
+html:root[data-look='warm'] .tag {
+  font-family: var(--sans);
+  background: none;
+}
+html:root[data-look='warm'] .portrait {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+}
+html:root[data-look='warm'] .portrait span {
+  color: var(--accent);
+}
+
+/* ───────────── picker ───────────── */
+.look-picker {
+  position: fixed;
+  left: 12px;
+  bottom: 12px;
+  z-index: 100;
+  display: flex;
+  gap: 4px;
+  padding: 6px;
+  background: #111;
+  border-radius: 8px;
+  font: 500 12px/1 system-ui, sans-serif;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+.look-picker span {
+  color: #999;
+  padding: 7px 6px;
+}
+.look-picker button {
+  font: inherit;
+  color: #ddd;
+  background: #2a2a2a;
+  border: 0;
+  border-radius: 5px;
+  padding: 7px 10px;
+  cursor: pointer;
+}
+.look-picker button[aria-pressed='true'] {
+  background: #fff;
+  color: #111;
+}

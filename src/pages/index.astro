@@ -2,54 +2,89 @@
 import Base from '../layouts/Base.astro';
 import PursuitSim from '../components/PursuitSim.astro';
 import EntryCard from '../components/EntryCard.astro';
-import { profile, intro, highlights, timeline, education } from '../data/profile';
+import Disclaimer from '../components/Disclaimer.astro';
+import { profile, timeline, education } from '../data/profile';
 import { projects } from '../data/projects';
 import { work, leadership } from '../data/experience';
-import { courses } from '../data/coursework';
-import { skillGroups } from '../data/skills';
-import { md, url, hasFile, libraryPhotos, creditFor } from '../lib';
+import { url, hasFile, libraryPhotos, creditFor } from '../lib';
 
 const featured = projects.filter((p) => p.featured).slice(0, 6);
 const photo = hasFile(profile.photo);
 const lib = libraryPhotos();
-const done = courses.filter((c) => c.status === 'done').length;
-const skillCount = skillGroups.reduce((n, g) => n + g.items.length, 0);
-const guide = [
-  { href: 'projects/', title: 'Projects', n: `${projects.length} projects`, text: 'Full-stack platforms, robotics, AI agents and research tools. Each one reads like its own documentation.' },
-  { href: 'experience/', title: 'Experience', n: `${work.length + leadership.length} roles`, text: 'My Adtran internship, teaching, and leadership on VEX 675, FRC 3318 and IEEE.' },
-  { href: 'georgia-tech/#coursework', title: 'Coursework', n: `${done} courses done`, text: 'My Computer Engineering degree as an interactive skill tree, with what I learned in each course.' },
-  { href: 'skills/', title: 'Skills', n: `${skillCount} skills`, text: 'Languages, robotics, infrastructure and CAD. Click any skill to see where I’ve used it.' },
-  { href: 'resume/', title: 'Resume', n: 'PDF + contact', text: 'My one-page resume, plus every way to reach me.' },
-];
 ---
 
 <Base>
   <section class="hero container">
     <div class="who">
       <div class="portrait">
-        {photo ? <img src={url(profile.photo)} alt={profile.fullName} /> : <span>CP</span>}
+        {photo ? <img src={url(profile.photo)} alt={profile.fullName} width="200" height="200" /> : <span>CP</span>}
       </div>
       <div>
-        <span class="label">Software Engineer · Georgia Tech Computer Engineering ’28</span>
-        <h1>Hi, I’m Chase</h1>
-        <p class="lede">
-          I build software that has to work in the real world, from robot autonomy and embedded control to data
-          platforms, developer tooling and AI agents.
+        <h1>Hi, I’m Chase. I’m a software developer.</h1>
+        <p class="lede">Take a look at my projects and experience. I’ll let the work speak for itself.</p>
+        <nav class="cta" aria-label="Primary actions">
+          <a class="btn primary" href="#projects">Projects</a>
+          <a class="btn" href="#experience">Experience</a>
+          <a class="btn" href={url(profile.resume)} target="_blank" rel="noopener">Resume (PDF)</a>
+        </nav>
+        <p class="elsewhere">
+          <a href={profile.github} target="_blank" rel="noopener">GitHub ↗</a>
+          <a href={profile.linkedin} target="_blank" rel="noopener">LinkedIn ↗</a>
+          <a href={`mailto:${profile.email}`}>{profile.email}</a>
         </p>
-        <div class="cta">
-          <a class="btn primary" href={url('projects/')}>See my work</a>
-          <a class="btn" href={url('resume/')}>Resume</a>
-          <a class="btn" href={profile.linkedin} target="_blank" rel="noopener">LinkedIn ↗</a>
-          <a class="btn" href={profile.github} target="_blank" rel="noopener">GitHub ↗</a>
-        </div>
       </div>
     </div>
   </section>
 
-  <section class="container">
-    <div class="stats">
-      {highlights.map((s) => <div><b>{s.v}</b><span>{s.l}</span></div>)}
+  <section class="container" aria-label="Background">
+    <ul class="bg">
+      <li><span class="label">Education</span><b>{education.degree}, Georgia Tech</b><span class="muted">{education.grad}</span></li>
+      <li><span class="label">Experience</span><b>{work[0].category}, {work[0].title}</b><span class="muted">{work[0].year}</span></li>
+      <li><span class="label">Interests</span><b>Developer tooling, AI agents, robotics</b><span class="muted">Full-stack apps and embedded control</span></li>
+    </ul>
+  </section>
+
+  <section class="section container" id="projects">
+    <div class="section-head"><h2>Projects</h2><a href={url('projects/')}>All {projects.length} projects →</a></div>
+    <Disclaimer />
+    <div class="grid">{featured.map((p) => <EntryCard entry={p} base="projects" />)}</div>
+  </section>
+
+  <section class="section container" id="experience">
+    <div class="section-head"><h2>Experience</h2><a href={url('experience/')}>All experience →</a></div>
+    <div class="xp">
+      {
+        work.map((e) => (
+          <a href={url(`experience/${e.slug}/`)} class="card xcard">
+            <span class="label">Professional · {e.year}</span>
+            <b>{e.title} <span class="muted">· {e.category}</span></b>
+            <span class="muted">{e.tagline}</span>
+            <span class="arrow">Read more →</span>
+          </a>
+        ))
+      }
     </div>
+    <h3 class="sub">Robotics &amp; leadership</h3>
+    <ul class="lead">
+      {
+        leadership.map((e) => (
+          <li><a href={url(`experience/${e.slug}/`)}>{e.title}</a><span class="muted">{e.category} · {e.year}</span></li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="section container sim-wrap">
+    <div>
+      <span class="label">Try it</span>
+      <h2>Pure pursuit, live</h2>
+      <p class="muted">
+        This is the path-following algorithm from my competition robots, running in your browser. The robot chases a
+        point one lookahead distance ahead on the path and steers along the arc that reaches it (κ = 2x / L²). Click it
+        to generate a new path. <a href={url('projects/odometry-pure-pursuit/')}>How it works →</a>
+      </p>
+    </div>
+    <PursuitSim />
   </section>
 
   <section class="section container">
@@ -77,26 +112,6 @@ const guide = [
     </ol>
   </section>
 
-  <section class="section container">
-    <div class="section-head"><h2>Find your way around</h2></div>
-    <div class="guide">
-      {
-        guide.map((g) => (
-          <a href={url(g.href)} class="card gcard">
-            <span class="label">{g.n}</span>
-            <b>{g.title} <span class="arrow">→</span></b>
-            <span class="muted">{g.text}</span>
-          </a>
-        ))
-      }
-    </div>
-  </section>
-
-  <section class="section container">
-    <div class="section-head"><h2>Selected work</h2><a href={url('projects/')}>All {projects.length} projects →</a></div>
-    <div class="grid">{featured.map((p) => <EntryCard entry={p} base="projects" />)}</div>
-  </section>
-
   {
     lib.length > 0 && (
       <section class="section container">
@@ -113,18 +128,6 @@ const guide = [
     )
   }
 
-  <section class="section container sim-wrap">
-    <div>
-      <span class="label">Try it</span>
-      <h2>Pure pursuit, live</h2>
-      <p class="muted">
-        This is the path-following algorithm from my competition robots, running in your browser. The robot chases a
-        point one lookahead distance ahead on the path and steers along the arc that reaches it (κ = 2x / L²). Click it
-        to generate a new path. <a href={url('projects/odometry-pure-pursuit/')}>How it works →</a>
-      </p>
-    </div>
-    <PursuitSim />
-  </section>
 </Base>
 
 <style>
@@ -162,7 +165,8 @@ const guide = [
     color: var(--accent);
   }
   .hero h1 {
-    font-size: clamp(2.6rem, 5.5vw, 4rem);
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    line-height: 1.1;
     margin: 8px 0 14px;
   }
   .lede {
@@ -175,6 +179,87 @@ const guide = [
     flex-wrap: wrap;
     gap: 10px;
     margin-top: 22px;
+  }
+  .elsewhere {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    margin: 16px 0 0;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .elsewhere a:hover {
+    color: var(--accent);
+  }
+  .bg {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .bg li {
+    padding: 18px 20px 18px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .bg li + li {
+    padding-left: 20px;
+    border-left: 1px solid var(--border);
+  }
+  .bg .muted {
+    font-size: 0.86rem;
+  }
+  .xp {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+  }
+  .xcard {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .xcard b {
+    font-size: 1.1rem;
+  }
+  .xcard .arrow {
+    margin-top: auto;
+    color: var(--accent);
+    font-size: 0.88rem;
+  }
+  .sub {
+    margin: 32px 0 10px;
+    font-size: 1rem;
+  }
+  .lead {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 4px 24px;
+  }
+  .lead li {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .lead a {
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .lead a:hover {
+    color: var(--accent);
+    text-decoration: underline;
+  }
+  .lead .muted {
+    font-size: 0.82rem;
   }
   .stats {
     display: grid;
@@ -371,7 +456,88 @@ const guide = [
       border-left: 0;
       border-top: 1px solid var(--border);
     }
-    .stats {
+    .elsewhere {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    margin: 16px 0 0;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .elsewhere a:hover {
+    color: var(--accent);
+  }
+  .bg {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .bg li {
+    padding: 18px 20px 18px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .bg li + li {
+    padding-left: 20px;
+    border-left: 1px solid var(--border);
+  }
+  .bg .muted {
+    font-size: 0.86rem;
+  }
+  .xp {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+  }
+  .xcard {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .xcard b {
+    font-size: 1.1rem;
+  }
+  .xcard .arrow {
+    margin-top: auto;
+    color: var(--accent);
+    font-size: 0.88rem;
+  }
+  .sub {
+    margin: 32px 0 10px;
+    font-size: 1rem;
+  }
+  .lead {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 4px 24px;
+  }
+  .lead li {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .lead a {
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .lead a:hover {
+    color: var(--accent);
+    text-decoration: underline;
+  }
+  .lead .muted {
+    font-size: 0.82rem;
+  }
+  .stats {
       grid-template-columns: 1fr 1fr;
     }
     .stats div:nth-child(3) {
