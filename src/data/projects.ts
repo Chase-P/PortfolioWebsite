@@ -895,7 +895,7 @@ refused anyway, so no order can be placed through this project."""`,
     category: 'AI Systems',
     year: '2026',
     role: 'Solo',
-    status: 'Ongoing research · results on a 40-problem HumanEval subset',
+    status: 'Ongoing research · now working on an 80B model',
     stack: ['Python', 'PyTorch', 'Hugging Face', 'GGUF / llama.cpp', 'QLoRA', 'HumanEval'],
     viz: 'prune',
     featured: true,
@@ -909,6 +909,7 @@ refused anyway, so no order can be placed through this project."""`,
     intro: [
       'Large coding models are strong, but the best open ones do not fit on a consumer GPU. Qwen3-Coder-30B needs about 18.5 GB even at 4 bits, and my card is an RTX 5070 Ti with 16 GB of VRAM. A coding model does not need to know trivia, fiction or other human languages, so the question is how much of it can be removed while it still writes good code.',
       'The workshop is a set of tools and experiments for answering that. Each technique scores the parts of a model by how much they matter on code, rewrites the checkpoint without the least useful ones, and benchmarks the result. Every step reads and writes a normal Hugging Face folder, so techniques can be stacked: prune experts, prune layers, heal, then quantize.',
+      '**The goal:** run an 80B-parameter model, about four times the size of my GPU, on one 16 GB RTX 5070 Ti at a usable speed, with as little loss on coding benchmarks as possible. The 30B results below show the method works at that scale. The 80B is the work in progress.',
     ],
     overview: [
       { t: 'viz', kind: 'prune', caption: 'Qwen3-Coder-30B-A3B: HumanEval pass@1 (first 40 problems) as experts are removed. It holds at 97.5% through 62% removed, then collapses.' },
@@ -1000,6 +1001,33 @@ refused anyway, so no order can be placed through this project."""`,
         ],
       },
       {
+        slug: 'chat-calibration',
+        title: 'Fix: calibrate on chat, not raw code',
+        summary: 'A pruned model that scored 0% turned out to have lost its answer format. Calibrating on chat-formatted data moved the cliff past 75%.',
+        blocks: [
+          {
+            t: 'p',
+            text: 'My first 75%-pruned Qwen3-Coder answered every HumanEval problem with an empty code fence and stopped, scoring 0%. Run as a raw completion model, without the chat template, the same weights passed 42.5%. So the model could still code, but pruning had removed the experts it uses to *answer* in chat form.',
+          },
+          {
+            t: 'p',
+            text: 'The cause was the calibration data. I had scored experts on raw code, so experts that only fire on instruction/answer text looked unimportant. I added a `--chat` mode that scores on CodeAlpaca instruction and answer pairs wrapped in the model’s chat template.',
+          },
+          {
+            t: 'table',
+            head: ['75% of experts removed', 'Calibration data', 'HumanEval (chat, first 40)', 'Code perplexity'],
+            rows: [
+              ['Before', 'Raw code', '0%', '4.129'],
+              ['After', 'Chat-formatted code', '87.5%', '3.965'],
+            ],
+          },
+          {
+            t: 'note',
+            text: 'It was slightly better on raw code too. The 62% chat-calibrated run is not usable yet: it fell into degenerate repetition after problem 17, after a second job shared the GPU for 14.7 hours. It needs a clean rerun, and I now run one GPU job at a time.',
+          },
+        ],
+      },
+      {
         slug: 'method',
         title: 'Method & tooling',
         summary: 'How models are scored, rewritten shard by shard, and measured, all on one consumer PC.',
@@ -1036,6 +1064,46 @@ refused anyway, so no order can be placed through this project."""`,
               'Quantize the pruned 30B to Q4_K_M and serve it from llama.cpp fully on the GPU with 32k context.',
               'Stack neuron pruning inside the experts, and heal the best candidates.',
             ],
+          },
+        ],
+      },
+      {
+        slug: 'fitting-80b',
+        title: 'In progress: fitting an 80B model in 16 GB',
+        summary: 'The plan for running an 80B-parameter MoE on one 16 GB card: stream it through scoring, prune most of its experts, quantize, and keep the rest in system RAM.',
+        blocks: [
+          {
+            t: 'p',
+            text: 'The current target is **Qwen3-Next-80B-A3B-Instruct**, an 80B-parameter Mixture-of-Experts model that activates only about 3B parameters per token. It is 64 GB of weights across 41 shards, already downloaded. It is about four times the size of a 16 GB card, so no single trick gets it there. The plan stacks four.',
+          },
+          {
+            t: 'steps',
+            items: [
+              { title: '1. Stream it through scoring', body: 'The streaming loader builds the model with empty weights and runs one decoder layer at a time in exact bf16, keeping hidden states in system RAM. It matched ordinary scoring with a correlation of 1.000, so a model far larger than VRAM can be scored on this PC.' },
+              { title: '2. Prune most of the experts', body: 'Chat-calibrated REAP scoring on 128 sequences of 1,024 tokens, then pruning at 50%, 75% and 85% of experts removed. The 30B results suggest large MoE models have enough redundancy for this, but the 80B is untested.' },
+              { title: '3. Rewrite shard by shard', body: 'Pruning edits the weight files one shard at a time, so the checkpoint is never loaded whole and 32 GB of RAM is enough.' },
+              { title: '4. Quantize and split placement', body: 'Convert to GGUF Q4_K_M and serve with llama.cpp. Attention and shared layers stay on the GPU, and expert tensors can be pinned to system RAM with a tensor override (`-ot \\.ffn_.*_exps\\.=CPU`). Only about 3B parameters are active per token, so CPU-side experts cost less speed than they would in a dense model.' },
+            ],
+          },
+          { t: 'h', text: 'What is running now' },
+          {
+            t: 'p',
+            text: 'An unattended overnight script (`07_big_moe/run_overnight.py`) runs the whole chain: GGUF conversion and speed benchmarks for the chat-calibrated 30B models first, then scoring, pruning and benchmarking of the 80B. Every stage is skipped if its output exists and a failed stage never stops the later ones, so it is safe to stop and resume. It waits for the GPU to be free, measures decode tokens per second with llama-bench both fully on the GPU and with experts on the CPU, and runs the full 164-problem HumanEval through llama-server.',
+          },
+          {
+            t: 'table',
+            head: ['Stage', 'State'],
+            rows: [
+              ['Download Qwen3-Next-80B (64 GB)', 'Done'],
+              ['GGUF + speed + HumanEval, chat-calibrated 30B at 62% and 75%', 'Running'],
+              ['Stream-score the 80B with chat calibration', 'Queued'],
+              ['Prune the 80B at 50%, 75%, 85%', 'Queued'],
+              ['Quantize and benchmark each 80B rung', 'Queued'],
+            ],
+          },
+          {
+            t: 'note',
+            text: 'No 80B results exist yet. The open risk is that the streaming runner may not handle this architecture, which mixes attention types, and the script records that as a failed stage instead of stopping. Results will go here, whether or not it fits.',
           },
         ],
       },
