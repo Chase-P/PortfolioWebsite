@@ -30,7 +30,7 @@ const { blocks } = Astro.props;
           return (
             <figure>
               <a href={url(b.src)} target="_blank" class="shot">
-                <img src={url(b.src)} alt={b.caption ?? ''} />
+                <img src={url(b.src)} alt={b.caption ?? ''} loading="lazy" />
               </a>
               {cap(b.src, b.caption) && <figcaption>{cap(b.src, b.caption)}</figcaption>}
             </figure>
@@ -41,7 +41,7 @@ const { blocks } = Astro.props;
               {b.items.map((g) => (
                 <figure>
                   <a href={url(g.src)} target="_blank" class="shot">
-                    <img src={url(g.src)} alt={g.caption ?? ''} />
+                    <img src={url(g.src)} alt={g.caption ?? ''} loading="lazy" />
                   </a>
                   {cap(g.src, g.caption) && <figcaption>{cap(g.src, g.caption)}</figcaption>}
                 </figure>

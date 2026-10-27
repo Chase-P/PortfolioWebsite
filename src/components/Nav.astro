@@ -22,11 +22,11 @@ const isActive = (p: string) => (p === '' ? path === base || path === base.repla
       <span class="sep">·</span>
       <span class="role">Software Engineer</span>
     </a>
-    <button class="menu" aria-label="Open menu" aria-expanded="false">
+    <button class="menu" aria-label="Open menu" aria-expanded="false" aria-controls="site-nav">
       <span></span><span></span>
     </button>
-    <nav>
-      {links.map(([label, p]) => <a href={url(p)} class:list={{ active: isActive(p) }}>{label}</a>)}
+    <nav id="site-nav" aria-label="Main">
+      {links.map(([label, p]) => <a href={url(p)} class:list={{ active: isActive(p) }} aria-current={isActive(p) ? 'page' : undefined}>{label}</a>)}
       <button class="theme" aria-label="Toggle dark mode" title="Toggle dark mode">
         <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8">
           <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path>
@@ -165,9 +165,18 @@ const isActive = (p: string) => (p === '' ? path === base || path === base.repla
 <script>
   const menu = document.querySelector<HTMLButtonElement>('.nav .menu')!;
   const nav = document.querySelector('.nav nav')!;
-  menu.addEventListener('click', () => {
-    const open = nav.classList.toggle('open');
+  const setOpen = (open: boolean) => {
+    nav.classList.toggle('open', open);
     menu.setAttribute('aria-expanded', String(open));
+    menu.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+  };
+  menu.addEventListener('click', () => setOpen(!nav.classList.contains('open')));
+  nav.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setOpen(false)));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && nav.classList.contains('open')) {
+      setOpen(false);
+      menu.focus();
+    }
   });
   document.querySelector('.nav .theme')!.addEventListener('click', () => {
     const root = document.documentElement;

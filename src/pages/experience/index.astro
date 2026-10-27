@@ -24,7 +24,7 @@ import { url } from '../../lib';
         {
           work.map((e) => (
             <a href={url(`experience/${e.slug}/`)} class="card row">
-              <div class="thumb">{e.cover ? <img src={url(e.cover)} alt="" /> : e.viz && <ProjectVisual kind={e.viz} />}</div>
+              <div class="thumb">{e.cover ? <img src={url(e.cover)} alt="" loading="lazy" /> : e.viz && <ProjectVisual kind={e.viz} />}</div>
               <div class="body">
                 <div class="meta"><span>{e.year}</span><span>{e.role}</span></div>
                 <h3>{e.title} <span class="muted">· {e.category}</span></h3>
@@ -51,7 +51,7 @@ import { url } from '../../lib';
         {
           leadership.map((e) => (
             <a href={url(`experience/${e.slug}/`)} class="card lcard">
-              <div class="lthumb">{e.cover ? <img src={url(e.cover)} alt="" /> : e.viz && <ProjectVisual kind={e.viz} />}</div>
+              <div class="lthumb">{e.cover ? <img src={url(e.cover)} alt="" loading="lazy" /> : e.viz && <ProjectVisual kind={e.viz} />}</div>
               <div class="lbody">
                 <div class="meta"><span>{e.category}</span><span>{e.year}</span></div>
                 <h3>{e.title}</h3>
