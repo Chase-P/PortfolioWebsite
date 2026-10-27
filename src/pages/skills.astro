@@ -94,7 +94,7 @@ const finderPages = Object.fromEntries(
                     <div class="uses">
                       {s.uses.map((u) => (
                         <a href={u.href} class="use">
-                          {u.cover ? <img src={u.cover} alt="" /> : <span class="ph" />}
+                          {u.cover ? <img src={u.cover} alt="" loading="lazy" /> : <span class="ph" />}
                           <span class="ut">
                             <span class="label">{u.kind}</span>
                             <b>{u.title}</b>
