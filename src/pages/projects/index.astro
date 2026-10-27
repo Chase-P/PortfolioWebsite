@@ -1,7 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
 import EntryCard from '../../components/EntryCard.astro';
-import Disclaimer from '../../components/Disclaimer.astro';
 import { projects, categories } from '../../data/projects';
 
 const pageCount = projects.reduce((n, p) => n + p.pages.length, 0);
@@ -13,8 +12,6 @@ const pageCount = projects.reduce((n, p) => n + p.pages.length, 0);
       <span class="label">{projects.length} projects · {pageCount} documented sections</span>
       <h1>Projects</h1>
     </header>
-
-    <Disclaimer />
 
     <div class="filters" role="group" aria-label="Filter projects by category">
       {categories.map((c, i) => <button type="button" class:list={{ on: i === 0 }} aria-pressed={i === 0 ? 'true' : 'false'} data-f={c}>{c}</button>)}

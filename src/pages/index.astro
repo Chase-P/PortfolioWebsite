@@ -2,7 +2,6 @@
 import Base from '../layouts/Base.astro';
 import PursuitSim from '../components/PursuitSim.astro';
 import EntryCard from '../components/EntryCard.astro';
-import Disclaimer from '../components/Disclaimer.astro';
 import { profile, timeline, education } from '../data/profile';
 import { projects } from '../data/projects';
 import { work, leadership } from '../data/experience';
@@ -46,7 +45,6 @@ const lib = libraryPhotos();
 
   <section class="section container" id="projects">
     <div class="section-head"><h2>Projects</h2><a href={url('projects/')}>All {projects.length} projects →</a></div>
-    <Disclaimer />
     <div class="grid">{featured.map((p) => <EntryCard entry={p} base="projects" />)}</div>
   </section>
 

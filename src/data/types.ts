@@ -1,4 +1,4 @@
-export type VizKind = 'agents' | 'cli' | 'pid' | 'fusion' | 'pursuit' | 'combat' | 'chess';
+export type VizKind = 'agents' | 'cli' | 'pid' | 'fusion' | 'pursuit' | 'combat' | 'chess' | 'prune';
 
 export type Block =
   | { t: 'p'; text: string }

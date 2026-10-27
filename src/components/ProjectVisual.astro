@@ -90,6 +90,17 @@ const board = Array.from({ length: 64 }, (_, i) => ({ x: 120 + (i % 8) * 20, y: 
       <text x="-160" y="106" class="lbl">antweight · 1 lb</text>
     </g>
   )}
+  {kind === 'prune' && (
+    <g>
+      <line x1="40" y1="200" x2="385" y2="200" class="axis" />
+      <line x1="40" y1="40" x2="40" y2="200" class="axis" />
+      <polyline points="134,54 184,54 229,54 274,54 346,200" class="draw" />
+      {[[134, 54], [184, 54], [229, 54], [274, 54], [346, 200]].map(([x, y]) => <circle cx={x} cy={y} r="3.4" class="acc-fill" />)}
+      <text x="48" y="36" class="lbl">HumanEval pass@1</text>
+      <text x="152" y="44" class="lbl acc">97.5%</text>
+      <text x="48" y="224" class="lbl">experts removed → 25 · 38 · 50 · 62 · 81%</text>
+    </g>
+  )}
   {kind === 'chess' && (
     <g>
       {board.map((s) => <rect x={s.x} y={s.y} width="20" height="20" class={s.dark ? 'sq-d' : 'sq-l'} />)}

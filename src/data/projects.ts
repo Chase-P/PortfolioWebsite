@@ -886,6 +886,162 @@ refused anyway, so no order can be placed through this project."""`,
     ],
   },
 
+  // ───────────────────────────────────────────── AI Compression Workshop
+  {
+    slug: 'ai-compression-workshop',
+    title: 'AI Compression Workshop',
+    tagline:
+      'Research into shrinking coding LLMs to fit one 16 GB GPU: I removed 62% of the experts from Qwen3-Coder-30B (56.9 → 23.1 GB) with no drop on HumanEval.',
+    category: 'AI Systems',
+    year: '2026',
+    role: 'Solo',
+    status: 'Ongoing research · results on a 40-problem HumanEval subset',
+    stack: ['Python', 'PyTorch', 'Hugging Face', 'GGUF / llama.cpp', 'QLoRA', 'HumanEval'],
+    viz: 'prune',
+    featured: true,
+    links: [{ label: 'GitHub repository', href: 'https://github.com/Chase-P/AICompressionWorkShop' }],
+    metrics: [
+      { v: '62%', l: 'of experts removed, 97.5% HumanEval kept' },
+      { v: '56.9 → 23.1 GB', l: 'Qwen3-Coder-30B at bf16' },
+      { v: '~7 GB', l: 'estimated at Q4_K_M, fits a 16 GB GPU' },
+      { v: '95% → 95%', l: '24% of neurons cut from a 7B model' },
+    ],
+    intro: [
+      'Large coding models are strong, but the best open ones do not fit on a consumer GPU. Qwen3-Coder-30B needs about 18.5 GB even at 4 bits, and my card is an RTX 5070 Ti with 16 GB of VRAM. A coding model does not need to know trivia, fiction or other human languages, so the question is how much of it can be removed while it still writes good code.',
+      'The workshop is a set of tools and experiments for answering that. Each technique scores the parts of a model by how much they matter on code, rewrites the checkpoint without the least useful ones, and benchmarks the result. Every step reads and writes a normal Hugging Face folder, so techniques can be stacked: prune experts, prune layers, heal, then quantize.',
+    ],
+    overview: [
+      { t: 'viz', kind: 'prune', caption: 'Qwen3-Coder-30B-A3B: HumanEval pass@1 (first 40 problems) as experts are removed. It holds at 97.5% through 62% removed, then collapses.' },
+      {
+        t: 'flow',
+        caption: 'The pipeline.',
+        steps: [
+          { title: 'Score', sub: 'run code through the model' },
+          { title: 'Prune', sub: 'experts · layers · neurons' },
+          { title: 'Heal', sub: 'short QLoRA fine-tune' },
+          { title: 'Quantize', sub: 'GGUF, code-aware' },
+          { title: 'Benchmark', sub: 'perplexity + HumanEval' },
+        ],
+      },
+    ],
+    pages: [
+      {
+        slug: 'expert-pruning',
+        title: 'Expert pruning on Qwen3-Coder-30B',
+        summary: 'Removing 62% of the Mixture-of-Experts experts cut the model from 56.9 to 23.1 GB with no loss on the benchmark.',
+        blocks: [
+          {
+            t: 'p',
+            text: 'Qwen3-Coder-30B-A3B is a Mixture-of-Experts model with 48 layers of 128 experts each, of which only 8 are used per token. I ran 256 × 1024 tokens of code through it and recorded how much traffic each expert received, then removed the least-used ones in a ladder of ratios (REAP-style pruning). No expert was completely unused on code, but 7.4% received under 0.1% of traffic, so importance is very uneven.',
+          },
+          {
+            t: 'table',
+            head: ['Experts left', 'Size (bf16)', 'Est. Q4_K_M', 'Perplexity', 'HumanEval (first 40)'],
+            rows: [
+              ['96 (25% removed)', '43.4 GB', '~13 GB', '2.86', '97.5%'],
+              ['80 (38% removed)', '36.6 GB', '~11 GB', '2.89', '97.5%'],
+              ['64 (50% removed)', '29.9 GB', '~9 GB', '2.92', '97.5%'],
+              ['48 (62% removed)', '23.1 GB', '~7 GB', '3.10', '97.5%'],
+              ['32 (75% removed)', '16.4 GB', '~5 GB', '4.13', 'not finished'],
+              ['24 (81% removed)', '13.0 GB', '~4 GB', '5.55', '0%'],
+            ],
+          },
+          {
+            t: 'stats',
+            items: [
+              { v: '62%', l: 'experts removed at the best point' },
+              { v: '23.1 GB', l: 'from 56.9 GB at bf16' },
+              { v: '~7 GB', l: 'estimated at Q4_K_M' },
+            ],
+          },
+          {
+            t: 'p',
+            text: 'The cliff sits between 62% (perplexity 3.10) and 81% removed (5.55, and the model returns empty code blocks). At about 7 GB in Q4_K_M, the 62% version should run entirely on a 16 GB GPU with room for a long context, where the original 18.5 GB model cannot.',
+          },
+          {
+            t: 'note',
+            text: 'Caveat: the first 40 HumanEval problems are easy, so every model from 25% to 62% removed scores 97.5% and the test cannot separate them. Full 164-problem runs and an unpruned baseline are the next step.',
+          },
+        ],
+      },
+      {
+        slug: 'neuron-and-layer-pruning',
+        title: 'Neuron vs. layer pruning',
+        summary: 'On a dense 7B model, removing individual MLP neurons keeps quality far better than removing whole layers.',
+        blocks: [
+          {
+            t: 'p',
+            text: 'Dense models have no experts to remove, so I tested two other cuts on Qwen2.5-Coder-7B. Layer pruning drops whole layers that barely change the hidden state. Neuron pruning, which I wrote as a new step, rates every MLP neuron from 0 to 15 by how much it contributes on code and removes the lowest-rated ones.',
+          },
+          {
+            t: 'table',
+            head: ['Model', 'What was removed', 'Size (bf16)', 'Perplexity', 'HumanEval'],
+            rows: [
+              ['Original', 'nothing', '15.2 GB', '2.74', '95%'],
+              ['neur4', '24% of MLP neurons', '12.5 GB', '2.83 (+3%)', '95%'],
+              ['neur6', '36% of MLP neurons', '11.1 GB', '2.92 (+7%)', '80%'],
+              ['neur8', '50% of MLP neurons', '9.5 GB', '3.09 (+13%)', '67.5%'],
+              ['Minus 4 layers', '4 of 28 layers', '~13.3 GB', '3.17 (+16%)', '70%'],
+              ['Minus 8 layers', '8 of 28 layers', '—', '4.13 (+50%)', '15%'],
+            ],
+          },
+          {
+            t: 'list',
+            items: [
+              '**Finer cuts hurt less.** neur4 is smaller than the 4-layers-removed model and loses nothing on HumanEval (95% vs. 70%).',
+              '**Perplexity is a warning light, not a score.** A 16% perplexity rise came with a 25-point HumanEval drop, so every result is confirmed on real coding problems.',
+              '**Code uses the middle layers broadly.** In layers 7–25 the bottom half of neurons still carries about 35% of the importance, while in layers 0–2 it carries under 8%. Cutting the same count from every layer therefore over-cuts the middle and under-cuts the edges.',
+            ],
+          },
+          {
+            t: 'p',
+            text: 'The same technique on OLMoE-1B-7B, a much smaller MoE model with only 64 experts, tells the other half of the story: 25% of experts could go for free (57.5% → 57.5%), but at 50% it fell to 10% and at 75% it broke. **Models with more experts have more redundancy**, which is why the 128-expert Qwen model tolerated far deeper cuts.',
+          },
+        ],
+      },
+      {
+        slug: 'method',
+        title: 'Method & tooling',
+        summary: 'How models are scored, rewritten shard by shard, and measured, all on one consumer PC.',
+        blocks: [
+          {
+            t: 'steps',
+            items: [
+              { title: 'Score on code', body: 'Calibration data is CodeAlpaca, mostly Python, so parts that only matter for non-code text score low and go first. A streaming loader lets the 61 GB model be scored with 32 GB of RAM.' },
+              { title: 'Rewrite the checkpoint', body: 'Pruning edits the weight files one shard at a time, so a 60 GB model can be pruned without ever loading it whole. The output is a normal Hugging Face folder.' },
+              { title: 'Heal', body: 'A short QLoRA fine-tune on code is meant to recover quality lost to pruning. The code is written, but I have not run it on any pruned model yet.' },
+              { title: 'Quantize', body: 'GGUF quantization with an importance matrix computed from code, so the bits go where code needs them.' },
+              { title: 'Benchmark', body: 'Held-out code perplexity as a fast check, and HumanEval pass@1 where each generated solution runs in its own process with a timeout.' },
+            ],
+          },
+          {
+            t: 'table',
+            head: ['Item', 'Size'],
+            rows: [
+              ['Windows desktop and apps', '~0.6 GB'],
+              ['llama.cpp working buffers', '~0.5–1 GB'],
+              ['KV cache, 32k tokens (Qwen3-Coder-30B)', '~3 GB (half with q8 cache)'],
+              ['Left for weights + context on a 16 GB card', '~14.5 GB'],
+            ],
+          },
+          {
+            t: 'p',
+            text: 'This VRAM budget is why the target is under about 11 GB. Pruning experts or neurons does not shrink the KV cache, because attention is untouched.',
+          },
+          { t: 'h', text: 'Still to do' },
+          {
+            t: 'list',
+            items: [
+              'Full 164-problem HumanEval on the 50%, 62% and 75% models, and an unpruned baseline.',
+              'Quantize the pruned 30B to Q4_K_M and serve it from llama.cpp fully on the GPU with 32k context.',
+              'Stack neuron pruning inside the experts, and heal the best candidates.',
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
   // ───────────────────────────────────────────── Adtran CLI
   {
     slug: 'legacy-refactoring-cli',
@@ -1427,6 +1583,7 @@ class Item(models.Model):
 const order = [
   'multi-agent-ai-platform',
   'legacy-refactoring-cli',
+  'ai-compression-workshop',
   'teamsdatabase',
   'quanttrader',
   'pid-controller',
